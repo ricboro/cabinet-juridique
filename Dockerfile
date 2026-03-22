@@ -25,4 +25,5 @@ EXPOSE 8092
 
 # Démarrage : migrations Alembic puis serveur
 CMD alembic upgrade head && \
-    uvicorn app.main:app --host 0.0.0.0 --port 8092
+    uvicorn app.main:app --host 0.0.0.0 --port 8092 \
+    --proxy-headers --forwarded-allow-ips='*'
