@@ -141,26 +141,6 @@
         {% endif %}
       </div>
 
-      {# ── Échéances existantes (modification uniquement) ── #}
-      {% if is_edit and dossier.echeances %}
-      <div class="form-section">
-        <div class="form-section-title">Échéances</div>
-        <ul class="echeances-list" style="margin-bottom: 0;">
-          {% for e in dossier.echeances %}
-            <li class="echeance-item">
-              <div class="echeance-info">
-                <span class="echeance-date">{{ e.date.strftime('%d/%m/%Y') }}</span>
-                <span class="echeance-libelle">{{ e.libelle }}</span>
-              </div>
-              <form action="{{ url_for('echeance_delete', id=dossier.id, eid=e.id) }}" method="post" style="display:inline;">
-                <button type="submit" class="btn-icon-delete" title="Supprimer">×</button>
-              </form>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
-
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">
           {{ 'Enregistrer les modifications' if is_edit else 'Créer le dossier' }}
@@ -171,5 +151,44 @@
       </div>
     </form>
   </div>
+
+  {# ── Échéances (modification uniquement) — hors du <form> principal ── #}
+  {% if is_edit %}
+  <div class="card" style="max-width: 720px; margin-top: 24px;">
+    <div class="card-title">Échéances</div>
+
+    {% if dossier.echeances %}
+      <ul class="echeances-list" style="margin-bottom: 16px;">
+        {% for e in dossier.echeances %}
+          <li class="echeance-item echeance-item--editable">
+            <span class="echeance-date">{{ e.date.strftime('%d/%m/%Y') }}</span>
+            <span class="echeance-libelle">{{ e.libelle }}</span>
+            <form action="{{ url_for('echeance_delete', id=dossier.id, eid=e.id) }}" method="post" style="margin:0;">
+              <button type="submit" class="btn-icon-delete" title="Supprimer">×</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted text-small" style="margin: 0 0 16px 0;">Aucune échéance pour l'instant.</p>
+    {% endif %}
+
+    <form
+      action="{{ url_for('echeance_create', id=dossier.id) }}"
+      method="post"
+      style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;"
+    >
+      <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+        <label for="echeance-date" class="text-small text-muted">Date</label>
+        <input type="date" id="echeance-date" name="date" required>
+      </div>
+      <div class="form-group" style="flex: 2; min-width: 140px; margin-bottom: 0;">
+        <label for="echeance-libelle" class="text-small text-muted">Libellé</label>
+        <input type="text" id="echeance-libelle" name="libelle" placeholder="Ex. : Audience, Conciliation…" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom: 1px;">+ Ajouter</button>
+    </form>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
