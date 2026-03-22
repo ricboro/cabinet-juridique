@@ -79,17 +79,20 @@ h4, h5, h6 {
 }
 
 .site-header .logo {
-  font-family: 'Playfair Display SC', serif;
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--text);
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.site-header .logo img {
+  height: 40px;
+  width: auto;
+  display: block;
 }
 
 .site-header .logo:hover {
-  color: var(--accent-hover);
+  opacity: 0.8;
 }
 
 .header-center {
