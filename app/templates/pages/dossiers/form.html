@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }} — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="status-bar">
+    <a href="{{ url_for('dossiers_list') }}">Dossiers</a>
+    {% if is_edit %}
+      <span class="sep">›</span>
+      <a href="{{ url_for('dossier_detail', id=dossier.id) }}">{{ dossier.reference }}</a>
+    {% endif %}
+    <span class="sep">›</span>
+    <span class="current">{{ 'Modifier' if is_edit else 'Nouveau dossier' }}</span>
+  </div>
+
+  <h1 class="page-title">{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }}</h1>
+
+  {% if not is_edit %}
+    <div class="card" style="max-width: 720px; margin-bottom: 20px; background: var(--bg); border-color: var(--border);">
+      <p class="text-muted text-small">
+        La référence du dossier sera générée automatiquement lors de la création (format : DOS-AAAA-NNNN).
+      </p>
+    </div>
+  {% else %}
+    <div class="card" style="max-width: 720px; margin-bottom: 20px; background: var(--bg); border-color: var(--border);">
+      <p class="text-muted text-small">
+        Référence du dossier : <strong style="font-family: 'Playfair Display SC', serif; font-size: 0.9rem;">{{ dossier.reference }}</strong>
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="card" style="max-width: 720px;">
+    <form
+      action="{{ url_for('dossier_update', id=dossier.id) if is_edit else url_for('dossier_create') }}"
+      method="post"
+      novalidate
+    >
+      {# ── Client ── #}
+      <div class="form-section">
+        <div class="form-section-title">Client</div>
+        <div class="form-group">
+          <label for="client_id">Client <span class="required">*</span></label>
+          <select name="client_id" id="client_id" required>
+            <option value="">-- Sélectionner un client --</option>
+            {% for c in clients %}
+              <option
+                value="{{ c.id }}"
+                {% if (dossier and dossier.client_id == c.id) or (preselect_client_id and preselect_client_id | int == c.id) %}selected{% endif %}
+              >
+                {% if c.type == 'personne' %}{{ c.prenom }} {{ c.nom }}{% else %}{{ c.raison_sociale }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          {% if errors and errors.client_id %}
+            <span class="error-msg">{{ errors.client_id }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Dossier ── #}
+      <div class="form-section">
+        <div class="form-section-title">Informations du dossier</div>
+        <div class="form-group">
+          <label for="intitule">Intitulé <span class="required">*</span></label>
+          <input
+            type="text"
+            id="intitule"
+            name="intitule"
+            value="{{ dossier.intitule if dossier else '' }}"
+            required
+            placeholder="Ex. : Litige commercial Dupont vs. Martin"
+          >
+          {% if errors and errors.intitule %}
+            <span class="error-msg">{{ errors.intitule }}</span>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="contexte">Contexte</label>
+          <textarea
+            id="contexte"
+            name="contexte"
+            rows="4"
+            placeholder="Description, contexte juridique, notes importantes…"
+          >{{ dossier.contexte if dossier else '' }}</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="statut">Statut</label>
+            <select name="statut" id="statut">
+              <option value="en_cours" {% if not dossier or dossier.statut == 'en_cours' %}selected{% endif %}>En cours</option>
+              <option value="suspendu" {% if dossier and dossier.statut == 'suspendu' %}selected{% endif %}>Suspendu</option>
+              <option value="cloture" {% if dossier and dossier.statut == 'cloture' %}selected{% endif %}>Clôturé</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="avocat_id">Avocat référent</label>
+            <select name="avocat_id" id="avocat_id">
+              <option value="">-- Sélectionner --</option>
+              {% for a in avocats %}
+                <option value="{{ a.id }}" {% if dossier and dossier.avocat_id == a.id %}selected{% endif %}>
+                  {{ a.prenom }} {{ a.nom }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {# ── Dates ── #}
+      <div class="form-section">
+        <div class="form-section-title">Dates</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date_ouverture">Date d'ouverture <span class="required">*</span></label>
+            <input
+              type="date"
+              id="date_ouverture"
+              name="date_ouverture"
+              value="{{ dossier.date_ouverture.strftime('%Y-%m-%d') if dossier and dossier.date_ouverture else '' }}"
+              required
+            >
+            {% if errors and errors.date_ouverture %}
+              <span class="error-msg">{{ errors.date_ouverture }}</span>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="date_echeance">Échéance</label>
+            <input
+              type="date"
+              id="date_echeance"
+              name="date_echeance"
+              value="{{ dossier.date_echeance.strftime('%Y-%m-%d') if dossier and dossier.date_echeance else '' }}"
+            >
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date_audience">Date d'audience</label>
+            <input
+              type="date"
+              id="date_audience"
+              name="date_audience"
+              value="{{ dossier.date_audience.strftime('%Y-%m-%d') if dossier and dossier.date_audience else '' }}"
+            >
+          </div>
+          {% if is_edit %}
+          <div class="form-group">
+            <label for="date_cloture">Date de clôture</label>
+            <input
+              type="date"
+              id="date_cloture"
+              name="date_cloture"
+              value="{{ dossier.date_cloture.strftime('%Y-%m-%d') if dossier and dossier.date_cloture else '' }}"
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Enregistrer les modifications' if is_edit else 'Créer le dossier' }}
+        </button>
+        <a href="{{ url_for('dossier_detail', id=dossier.id) if is_edit else url_for('dossiers_list') }}" class="btn">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

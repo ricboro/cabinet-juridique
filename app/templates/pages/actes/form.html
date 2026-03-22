@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }} — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="status-bar">
+    {% if is_edit and acte and acte.acte_dossiers %}
+      <a href="{{ url_for('dossier_detail', id=acte.acte_dossiers[0].dossier_id) }}">Dossier</a>
+      <span class="sep">›</span>
+    {% endif %}
+    <span class="current">{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }}</span>
+  </div>
+
+  <h1 class="page-title">{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }}</h1>
+
+  <div class="card" style="max-width: 720px;">
+    <form
+      action="{{ url_for('acte_update', id=acte.id) if is_edit else url_for('acte_create') }}"
+      method="post"
+      novalidate
+      id="acte-form"
+    >
+      {# ── Informations principales ── #}
+      <div class="form-section">
+        <div class="form-section-title">Informations</div>
+
+        <div class="form-group">
+          <label for="nom">Nom de l'acte <span class="required">*</span></label>
+          <input
+            type="text"
+            id="nom"
+            name="nom"
+            value="{{ acte.nom if acte else '' }}"
+            required
+            placeholder="Ex. : Assignation en référé, Conclusions en réponse…"
+          >
+          {% if errors and errors.nom %}
+            <span class="error-msg">{{ errors.nom }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="type_acte_id">Type d'acte <span class="required">*</span></label>
+            <select name="type_acte_id" id="type_acte_id" required>
+              <option value="">-- Sélectionner --</option>
+              {% for ta in type_actes %}
+                <option value="{{ ta.id }}" {% if acte and acte.type_acte_id == ta.id %}selected{% endif %}>
+                  {{ ta.libelle }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if errors and errors.type_acte_id %}
+              <span class="error-msg">{{ errors.type_acte_id }}</span>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="date_production">Date de production <span class="required">*</span></label>
+            <input
+              type="date"
+              id="date_production"
+              name="date_production"
+              value="{{ acte.date_production.strftime('%Y-%m-%d') if acte and acte.date_production else '' }}"
+              required
+            >
+            {% if errors and errors.date_production %}
+              <span class="error-msg">{{ errors.date_production }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lien_onedrive">Lien OneDrive <span class="required">*</span></label>
+          <input
+            type="url"
+            id="lien_onedrive"
+            name="lien_onedrive"
+            value="{{ acte.lien_onedrive if acte else '' }}"
+            required
+            placeholder="https://…sharepoint.com/…"
+          >
+          <div class="form-hint">URL complète vers le document dans OneDrive ou SharePoint.</div>
+          {% if errors and errors.lien_onedrive %}
+            <span class="error-msg">{{ errors.lien_onedrive }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Dossiers liés ── #}
+      <div class="form-section">
+        <div class="form-section-title">Dossiers liés</div>
+        <div class="form-group">
+          <label>Dossiers associés</label>
+          <div class="checkbox-group" role="group" aria-label="Sélectionner les dossiers">
+            {% if dossiers %}
+              {% for d in dossiers %}
+                <label class="checkbox-option" for="dossier-{{ d.id }}">
+                  <input
+                    type="checkbox"
+                    id="dossier-{{ d.id }}"
+                    name="dossier_ids"
+                    value="{{ d.id }}"
+                    {% if acte and d.id in acte.acte_dossiers | map(attribute='dossier_id') | list %}checked
+                    {% elif preselect_dossier_id and preselect_dossier_id | int == d.id %}checked{% endif %}
+                  >
+                  <label for="dossier-{{ d.id }}">
+                    <strong style="font-family: 'Playfair Display SC', serif; font-size: 0.8rem;">{{ d.reference }}</strong>
+                    — {{ d.intitule }}
+                    {% if d.statut == 'en_cours' %}
+                      <span class="badge badge-en-cours" style="font-size: 0.65rem;">En cours</span>
+                    {% elif d.statut == 'cloture' %}
+                      <span class="badge badge-cloture" style="font-size: 0.65rem;">Clôturé</span>
+                    {% endif %}
+                  </label>
+                </label>
+              {% endfor %}
+            {% else %}
+              <div class="empty-state" style="padding: 16px;">
+                <p>Aucun dossier disponible. <a href="{{ url_for('dossier_new') }}">Créer un dossier</a></p>
+              </div>
+            {% endif %}
+          </div>
+          {% if errors and errors.dossier_ids %}
+            <span class="error-msg">{{ errors.dossier_ids }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Tags ── #}
+      <div class="form-section">
+        <div class="form-section-title">Tags</div>
+
+        {# Tags déjà sélectionnés #}
+        <div id="selected-tags" class="tags-list" style="margin-bottom: 10px;">
+          {% if acte and acte.acte_tags %}
+            {% for at in acte.acte_tags %}
+              <span class="tag" data-tag="{{ at.tag.libelle }}">
+                {{ at.tag.libelle }}
+                <button type="button" class="tag-remove" onclick="removeTag(this)" aria-label="Supprimer le tag {{ at.tag.libelle }}">×</button>
+                <input type="hidden" name="tag_libelles" value="{{ at.tag.libelle }}">
+              </span>
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        {# Input autocomplétion ── #}
+        <div class="form-group tags-autocomplete">
+          <label for="tag-input">Ajouter un tag</label>
+          <input
+            type="text"
+            id="tag-input"
+            name="tag_input"
+            placeholder="Commencer à saisir…"
+            autocomplete="off"
+            hx-get="{{ url_for('tags_autocomplete') }}"
+            hx-trigger="keyup changed delay:200ms"
+            hx-target="#tags-suggestions"
+            hx-include="[name='tag_input']"
+          >
+          <div id="tags-suggestions" class="tags-suggestions"></div>
+          <div class="form-hint">Appuyez sur Entrée pour ajouter un nouveau tag.</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Enregistrer les modifications' if is_edit else 'Créer l\'acte' }}
+        </button>
+        {% if is_edit and acte and acte.acte_dossiers %}
+          <a href="{{ url_for('dossier_detail', id=acte.acte_dossiers[0].dossier_id) }}" class="btn">Annuler</a>
+        {% else %}
+          <a href="{{ url_for('dossiers_list') }}" class="btn">Annuler</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Ajouter un tag au clic sur une suggestion HTMX
+  document.body.addEventListener('click', function(e) {
+    if (e.target.classList.contains('tag-suggestion-item')) {
+      addTag(e.target.textContent.trim());
+      document.getElementById('tags-suggestions').innerHTML = '';
+      document.getElementById('tag-input').value = '';
+    }
+  });
+
+  // Ajouter un tag sur Entrée
+  document.getElementById('tag-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var val = this.value.trim();
+      if (val) {
+        addTag(val);
+        this.value = '';
+        document.getElementById('tags-suggestions').innerHTML = '';
+      }
+    }
+  });
+
+  function addTag(label) {
+    // Vérifier si déjà présent
+    var existing = document.querySelectorAll('#selected-tags .tag');
+    for (var i = 0; i < existing.length; i++) {
+      if (existing[i].dataset.tag === label) return;
+    }
+    var container = document.getElementById('selected-tags');
+    var span = document.createElement('span');
+    span.className = 'tag';
+    span.dataset.tag = label;
+    span.innerHTML =
+      label +
+      ' <button type="button" class="tag-remove" onclick="removeTag(this)" aria-label="Supprimer le tag ' + label + '">×</button>' +
+      '<input type="hidden" name="tag_libelles" value="' + escapeHtml(label) + '">';
+    container.appendChild(span);
+  }
+
+  function removeTag(btn) {
+    var tag = btn.closest('.tag');
+    if (tag) tag.remove();
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // Fermer suggestions au clic extérieur
+  document.addEventListener('click', function(e) {
+    var suggestions = document.getElementById('tags-suggestions');
+    var input = document.getElementById('tag-input');
+    if (suggestions && input && !input.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.innerHTML = '';
+    }
+  });
+</script>
+{% endblock %}

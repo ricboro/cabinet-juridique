@@ -1,0 +1,28 @@
+# Environnement
+.env
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# Base de données
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.db.bak.*
+
+# Alembic
+alembic/versions/*.pyc
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log

@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "100.81.134.30:8092:8092"   # Tailscale uniquement — pas d'accès internet direct
+    volumes:
+      - ./data:/data                  # SQLite persisté sur le host
+    env_file: .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8092/login')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

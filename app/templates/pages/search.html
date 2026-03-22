@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Recherche — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <h1 class="page-title">Recherche</h1>
+
+  {# ── Barre de recherche principale ── #}
+  <div class="card" style="margin-bottom: 20px;">
+    <form method="get" action="{{ url_for('search_page') }}" id="search-form">
+      <div class="form-group search-main-bar" style="margin-bottom: 16px;">
+        <label for="search-q" class="sr-only">Recherche</label>
+        <input
+          type="search"
+          id="search-q"
+          name="q"
+          value="{{ q | default('') }}"
+          placeholder="Rechercher dans les dossiers, actes, clients…"
+          autocomplete="off"
+          hx-get="{{ url_for('search_htmx') }}"
+          hx-trigger="keyup changed delay:300ms[value.length>=3]"
+          hx-target="#search-results-container"
+          hx-swap="innerHTML"
+          hx-include="#search-form"
+        >
+      </div>
+
+      {# ── Filtres secondaires ── #}
+      <div class="filters-bar" style="padding: 0; border: none; background: none; margin-bottom: 0;">
+        <div class="form-group">
+          <label for="type_acte_id">Type d'acte</label>
+          <select name="type_acte_id" id="type_acte_id"
+                  hx-get="{{ url_for('search_htmx') }}"
+                  hx-trigger="change"
+                  hx-target="#search-results-container"
+                  hx-include="#search-form">
+            <option value="">Tous les types</option>
+            {% for ta in type_actes %}
+              <option value="{{ ta.id }}" {% if filters.type_acte_id | int == ta.id %}selected{% endif %}>
+                {{ ta.libelle }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="statut-filter">Statut dossier</label>
+          <select name="statut" id="statut-filter"
+                  hx-get="{{ url_for('search_htmx') }}"
+                  hx-trigger="change"
+                  hx-target="#search-results-container"
+                  hx-include="#search-form">
+            <option value="">Tous les statuts</option>
+            <option value="en_cours" {% if filters.statut == 'en_cours' %}selected{% endif %}>En cours</option>
+            <option value="cloture" {% if filters.statut == 'cloture' %}selected{% endif %}>Clôturé</option>
+            <option value="suspendu" {% if filters.statut == 'suspendu' %}selected{% endif %}>Suspendu</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tag-filter">Tag</label>
+          <input
+            type="text"
+            id="tag-filter"
+            name="tag"
+            value="{{ filters.tag | default('') }}"
+            placeholder="Filtrer par tag…"
+            hx-get="{{ url_for('search_htmx') }}"
+            hx-trigger="keyup changed delay:300ms"
+            hx-target="#search-results-container"
+            hx-include="#search-form"
+          >
+        </div>
+        {% if q or filters.type_acte_id or filters.statut or filters.tag %}
+          <div class="form-group" style="align-self: flex-end;">
+            <a href="{{ url_for('search_page') }}" class="btn btn-sm">Réinitialiser</a>
+          </div>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  {# ── Résultats ── #}
+  <div id="search-results-container">
+    {% if q and q | length >= 3 %}
+      {% include "partials/search_results.html" %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>Tapez au moins 3 caractères pour rechercher.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

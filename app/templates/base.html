@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Cabinet Juridique{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  {# ── Header ── #}
+  <header class="site-header">
+    <a href="{{ url_for('dashboard') }}" class="logo">Cabinet — {{ app_name }}</a>
+
+    <div class="header-center">
+      <nav class="nav-links">
+        <a href="{{ url_for('clients_list') }}"
+           {% if request.url.path.startswith('/clients') %}class="active"{% endif %}>Clients</a>
+        <a href="{{ url_for('dossiers_list') }}"
+           {% if request.url.path.startswith('/dossiers') %}class="active"{% endif %}>Dossiers</a>
+        <a href="{{ url_for('dossier_new') }}"
+           {% if request.url.path == '/dossiers/new' %}class="active"{% endif %}>Nouveau dossier</a>
+        <a href="{{ url_for('search_page') }}"
+           {% if request.url.path.startswith('/search') %}class="active"{% endif %}>Recherche</a>
+        <a href="{{ url_for('type_actes_list') }}"
+           {% if request.url.path.startswith('/type-actes') %}class="active"{% endif %}>Types d'actes</a>
+      </nav>
+
+      {# Barre de recherche live #}
+      <div class="search-bar" id="header-search-wrapper">
+        <input
+          type="search"
+          id="header-search-input"
+          name="q"
+          placeholder="Rechercher…"
+          autocomplete="off"
+          aria-label="Recherche rapide"
+          hx-get="{{ url_for('search_htmx') }}"
+          hx-trigger="keyup changed delay:300ms[value.length>=3]"
+          hx-target="#search-live-results"
+          hx-swap="innerHTML"
+        >
+        <div id="search-live-results" class="search-dropdown" role="listbox" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      {% if current_user %}
+        <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm">Déconnexion</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ── Flash messages ── #}
+  {% if flash_message %}
+    <div class="flash flash-{{ flash_type | default('info') }}" role="alert">
+      {{ flash_message }}
+    </div>
+  {% endif %}
+
+  {# ── Contenu principal ── #}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ── Scripts ── #}
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5ViYgSibmK" crossorigin="anonymous"></script>
+
+  {# Fermeture dropdown au clic extérieur #}
+  <script>
+    document.addEventListener('click', function(e) {
+      var wrapper = document.getElementById('header-search-wrapper');
+      var results = document.getElementById('search-live-results');
+      if (wrapper && results && !wrapper.contains(e.target)) {
+        results.innerHTML = '';
+      }
+    });
+
+    // Vider le dropdown si l'input est vidé
+    var searchInput = document.getElementById('header-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        if (this.value.length < 3) {
+          var results = document.getElementById('search-live-results');
+          if (results) results.innerHTML = '';
+        }
+      });
+    }
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

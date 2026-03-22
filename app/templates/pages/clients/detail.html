@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.prenom ~ ' ' ~ client.nom if client.type == 'personne' else client.raison_sociale }} — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="status-bar">
+    <a href="{{ url_for('clients_list') }}">Clients</a>
+    <span class="sep">›</span>
+    <span class="current">
+      {% if client.type == 'personne' %}{{ client.prenom }} {{ client.nom }}{% else %}{{ client.raison_sociale }}{% endif %}
+    </span>
+  </div>
+
+  {# ── En-tête client ── #}
+  <div class="page-header">
+    <div>
+      <h1 class="client-name">
+        {% if client.type == 'personne' %}
+          {{ client.prenom }} {{ client.nom }}
+        {% else %}
+          {{ client.raison_sociale }}
+        {% endif %}
+      </h1>
+      <span class="client-type-badge">
+        {{ 'Personne physique' if client.type == 'personne' else 'Société' }}
+      </span>
+    </div>
+    <div class="btn-group">
+      <a href="{{ url_for('client_edit', id=client.id) }}" class="btn">Modifier</a>
+      <button type="button" class="btn btn-danger" onclick="document.getElementById('modal-delete-client').style.display='flex'">
+        Supprimer
+      </button>
+    </div>
+  </div>
+
+  {# ── Informations ── #}
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-title">Informations</div>
+    <div class="info-grid">
+      {% if client.type == 'personne' %}
+        <div class="info-item">
+          <div class="info-label">Prénom</div>
+          <div class="info-value">{{ client.prenom or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Nom</div>
+          <div class="info-value">{{ client.nom or '—' }}</div>
+        </div>
+      {% else %}
+        <div class="info-item">
+          <div class="info-label">Raison sociale</div>
+          <div class="info-value">{{ client.raison_sociale or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">SIRET</div>
+          <div class="info-value">{{ client.siret or '—' }}</div>
+        </div>
+      {% endif %}
+      <div class="info-item">
+        <div class="info-label">Email</div>
+        <div class="info-value">
+          {% if client.email %}
+            <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Téléphone</div>
+        <div class="info-value">{{ client.telephone or '—' }}</div>
+      </div>
+      <div class="info-item" style="grid-column: 1 / -1;">
+        <div class="info-label">Adresse</div>
+        <div class="info-value" style="white-space: pre-line;">{{ client.adresse or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Client depuis</div>
+        <div class="info-value">
+          {{ client.date_creation.strftime('%d/%m/%Y') if client.date_creation else '—' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Dossiers ── #}
+  <div class="section-heading">
+    <h2>Dossiers ({{ dossiers | length }})</h2>
+    <a href="{{ url_for('dossier_new') }}?client_id={{ client.id }}" class="btn btn-primary btn-sm">
+      + Nouveau dossier
+    </a>
+  </div>
+
+  {% if dossiers %}
+    <div class="card" style="padding: 0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Intitulé</th>
+              <th>Statut</th>
+              <th>Date d'ouverture</th>
+              <th>Échéance</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dossier in dossiers %}
+            <tr>
+              <td>
+                <a href="{{ url_for('dossier_detail', id=dossier.id) }}" style="font-family: 'Playfair Display SC', serif; font-size: 0.875rem; text-decoration: none;">
+                  {{ dossier.reference }}
+                </a>
+              </td>
+              <td>{{ dossier.intitule }}</td>
+              <td>
+                {% if dossier.statut == 'en_cours' %}
+                  <span class="badge badge-en-cours">En cours</span>
+                {% elif dossier.statut == 'cloture' %}
+                  <span class="badge badge-cloture">Clôturé</span>
+                {% elif dossier.statut == 'suspendu' %}
+                  <span class="badge badge-suspendu">Suspendu</span>
+                {% endif %}
+              </td>
+              <td class="text-small text-muted">
+                {{ dossier.date_ouverture.strftime('%d/%m/%Y') if dossier.date_ouverture else '—' }}
+              </td>
+              <td class="text-small text-muted">
+                {{ dossier.date_echeance.strftime('%d/%m/%Y') if dossier.date_echeance else '—' }}
+              </td>
+              <td>
+                <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="btn btn-sm">Voir</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state" style="padding: 32px;">
+      <p>Aucun dossier pour ce client.</p>
+      <a href="{{ url_for('dossier_new') }}?client_id={{ client.id }}" class="btn btn-primary">
+        Créer un premier dossier
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{# ── Modal suppression ── #}
+<div id="modal-delete-client" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-delete-title">
+  <div class="modal">
+    <h3 id="modal-delete-title">Supprimer ce client</h3>
+    <p>
+      Cette action est irréversible. Le client et tous ses dossiers associés seront définitivement supprimés.
+      {% if dossiers | length > 0 %}
+        <br><strong>Attention :</strong> ce client possède {{ dossiers | length }} dossier(s).
+      {% endif %}
+    </p>
+    <div class="btn-group">
+      <button type="button" class="btn" onclick="document.getElementById('modal-delete-client').style.display='none'">
+        Annuler
+      </button>
+      <form action="{{ url_for('client_delete', id=client.id) }}" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Fermer modal au clic sur l'overlay
+  document.getElementById('modal-delete-client').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+</script>
+{% endblock %}

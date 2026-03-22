@@ -1,0 +1,48 @@
+{% if actes %}
+  <div id="actes-list">
+    {% for acte in actes %}
+    <div class="acte-card">
+      <div class="acte-main">
+        <div class="acte-name">{{ acte.nom }}</div>
+        <div class="acte-meta">
+          {% if acte.type_acte %}
+            <span class="badge badge-cloture">{{ acte.type_acte.libelle }}</span>
+          {% endif %}
+          {% if acte.date_production %}
+            <span>{{ acte.date_production.strftime('%d/%m/%Y') }}</span>
+          {% endif %}
+          {% if acte.lien_onedrive %}
+            <a href="{{ acte.lien_onedrive }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">
+              Ouvrir OneDrive ↗
+            </a>
+          {% endif %}
+        </div>
+        {% if acte.acte_tags %}
+          <div class="acte-tags">
+            {% for at in acte.acte_tags %}
+              <span class="tag">{{ at.tag.libelle }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="acte-actions">
+        <a href="{{ url_for('acte_edit', id=acte.id) }}" class="btn btn-sm">Modifier</a>
+        <form action="{{ url_for('acte_delete', id=acte.id) }}" method="post" style="display:inline;"
+              onsubmit="return confirm('Supprimer l\'acte « {{ acte.nom }} » ?');">
+          <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state" style="padding: 32px;">
+    <div class="empty-icon">📄</div>
+    <p>Aucun acte pour ce dossier.</p>
+    {% if dossier %}
+      <a href="{{ url_for('acte_new') }}?dossier_id={{ dossier.id }}" class="btn btn-primary">
+        Ajouter un acte →
+      </a>
+    {% endif %}
+  </div>
+{% endif %}

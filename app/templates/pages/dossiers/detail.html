@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dossier.reference }} — {{ dossier.intitule }} — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="status-bar">
+    <a href="{{ url_for('dossiers_list') }}">Dossiers</a>
+    <span class="sep">›</span>
+    <span class="current">{{ dossier.reference }}</span>
+  </div>
+
+  {# ── En-tête dossier ── #}
+  <div class="dossier-header">
+    <div class="page-header" style="align-items: flex-start;">
+      <div>
+        <div class="dossier-reference">{{ dossier.reference }}</div>
+        <div class="dossier-intitule">{{ dossier.intitule }}</div>
+        <div class="dossier-badges">
+          {% if dossier.statut == 'en_cours' %}
+            <span class="badge badge-en-cours">En cours</span>
+          {% elif dossier.statut == 'cloture' %}
+            <span class="badge badge-cloture">Clôturé</span>
+          {% elif dossier.statut == 'suspendu' %}
+            <span class="badge badge-suspendu">Suspendu</span>
+          {% endif %}
+          {% if dossier.avocat %}
+            <span class="badge badge-cloture">{{ dossier.avocat.prenom }} {{ dossier.avocat.nom }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="{{ url_for('dossier_edit', id=dossier.id) }}" class="btn">Modifier</a>
+        {% if dossier.statut == 'en_cours' %}
+          <button type="button" class="btn" onclick="document.getElementById('modal-close-dossier').style.display='flex'">
+            Clôturer
+          </button>
+        {% endif %}
+        <button type="button" class="btn btn-danger" onclick="document.getElementById('modal-delete-dossier').style.display='flex'">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# ── Informations ── #}
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-title">Informations</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Client</div>
+        <div class="info-value">
+          <a href="{{ url_for('client_detail', id=dossier.client.id) }}">
+            {% if dossier.client.type == 'personne' %}
+              {{ dossier.client.prenom }} {{ dossier.client.nom }}
+            {% else %}
+              {{ dossier.client.raison_sociale }}
+            {% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Avocat référent</div>
+        <div class="info-value">
+          {{ dossier.avocat.prenom ~ ' ' ~ dossier.avocat.nom if dossier.avocat else '—' }}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Date d'ouverture</div>
+        <div class="info-value">
+          {{ dossier.date_ouverture.strftime('%d/%m/%Y') if dossier.date_ouverture else '—' }}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Date de clôture</div>
+        <div class="info-value">
+          {{ dossier.date_cloture.strftime('%d/%m/%Y') if dossier.date_cloture else '—' }}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Échéance</div>
+        <div class="info-value">
+          {{ dossier.date_echeance.strftime('%d/%m/%Y') if dossier.date_echeance else '—' }}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Date d'audience</div>
+        <div class="info-value">
+          {{ dossier.date_audience.strftime('%d/%m/%Y') if dossier.date_audience else '—' }}
+        </div>
+      </div>
+    </div>
+
+    {% if dossier.contexte %}
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <div class="info-label" style="margin-bottom: 8px;">Contexte</div>
+        <div class="contexte-block">{{ dossier.contexte }}</div>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ── Actes ── #}
+  <div class="section-heading">
+    <h2>Actes ({{ actes | length }})</h2>
+    <a href="{{ url_for('acte_new') }}?dossier_id={{ dossier.id }}" class="btn btn-primary btn-sm">
+      + Ajouter un acte
+    </a>
+  </div>
+
+  {% include "partials/actes_list.html" %}
+</div>
+
+{# ── Modal clôture ── #}
+{% if dossier.statut == 'en_cours' %}
+<div id="modal-close-dossier" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>Clôturer ce dossier</h3>
+    <p>Le dossier « {{ dossier.reference }} — {{ dossier.intitule }} » sera marqué comme clôturé. Cette action peut être annulée en modifiant le dossier.</p>
+    <div class="btn-group">
+      <button type="button" class="btn" onclick="document.getElementById('modal-close-dossier').style.display='none'">
+        Annuler
+      </button>
+      <form action="{{ url_for('dossier_close', id=dossier.id) }}" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-primary">Confirmer la clôture</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Modal suppression ── #}
+<div id="modal-delete-dossier" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3>Supprimer ce dossier</h3>
+    <p>
+      Cette action est irréversible. Le dossier « {{ dossier.reference }} » et tous ses actes associés seront définitivement supprimés.
+    </p>
+    <div class="btn-group">
+      <button type="button" class="btn" onclick="document.getElementById('modal-delete-dossier').style.display='none'">
+        Annuler
+      </button>
+      <form action="{{ url_for('dossier_delete', id=dossier.id) }}" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Fermer les modales au clic sur l'overlay
+  ['modal-close-dossier', 'modal-delete-dossier'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+      });
+    }
+  });
+</script>
+{% endblock %}

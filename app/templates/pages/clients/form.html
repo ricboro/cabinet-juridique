@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifier le client' if is_edit else 'Nouveau client' }} — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="status-bar">
+    <a href="{{ url_for('clients_list') }}">Clients</a>
+    {% if is_edit %}
+      <span class="sep">›</span>
+      <a href="{{ url_for('client_detail', id=client.id) }}">
+        {% if client.type == 'personne' %}{{ client.prenom }} {{ client.nom }}{% else %}{{ client.raison_sociale }}{% endif %}
+      </a>
+    {% endif %}
+    <span class="sep">›</span>
+    <span class="current">{{ 'Modifier' if is_edit else 'Nouveau client' }}</span>
+  </div>
+
+  <h1 class="page-title">{{ 'Modifier le client' if is_edit else 'Nouveau client' }}</h1>
+
+  <div class="card" style="max-width: 720px;">
+    <form
+      action="{{ url_for('client_update', id=client.id) if is_edit else url_for('client_create') }}"
+      method="post"
+      novalidate
+      id="client-form"
+    >
+      {# ── Type de client ── #}
+      <div class="form-section">
+        <div class="form-section-title">Type de client</div>
+        <div class="form-group">
+          <div class="radio-group" role="group" aria-labelledby="type-label">
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="type"
+                value="personne"
+                id="type-personne"
+                {% if not client or client.type == 'personne' %}checked{% endif %}
+                onchange="toggleClientType(this.value)"
+              >
+              Personne physique
+            </label>
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="type"
+                value="societe"
+                id="type-societe"
+                {% if client and client.type == 'societe' %}checked{% endif %}
+                onchange="toggleClientType(this.value)"
+              >
+              Société
+            </label>
+          </div>
+          {% if errors and errors.type %}
+            <span class="error-msg">{{ errors.type }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Champs personne physique ── #}
+      <div class="form-section" id="fields-personne">
+        <div class="form-section-title">Identité</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="prenom">Prénom <span class="required">*</span></label>
+            <input
+              type="text"
+              id="prenom"
+              name="prenom"
+              value="{{ client.prenom if client else '' }}"
+              autocomplete="given-name"
+            >
+            {% if errors and errors.prenom %}
+              <span class="error-msg">{{ errors.prenom }}</span>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="nom">Nom <span class="required">*</span></label>
+            <input
+              type="text"
+              id="nom"
+              name="nom"
+              value="{{ client.nom if client else '' }}"
+              autocomplete="family-name"
+            >
+            {% if errors and errors.nom %}
+              <span class="error-msg">{{ errors.nom }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# ── Champs société ── #}
+      <div class="form-section" id="fields-societe" style="display: none;">
+        <div class="form-section-title">Informations société</div>
+        <div class="form-group">
+          <label for="raison_sociale">Raison sociale <span class="required">*</span></label>
+          <input
+            type="text"
+            id="raison_sociale"
+            name="raison_sociale"
+            value="{{ client.raison_sociale if client else '' }}"
+          >
+          {% if errors and errors.raison_sociale %}
+            <span class="error-msg">{{ errors.raison_sociale }}</span>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <label for="siret">SIRET</label>
+          <input
+            type="text"
+            id="siret"
+            name="siret"
+            value="{{ client.siret if client else '' }}"
+            maxlength="14"
+            placeholder="14 chiffres"
+          >
+          {% if errors and errors.siret %}
+            <span class="error-msg">{{ errors.siret }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Coordonnées ── #}
+      <div class="form-section">
+        <div class="form-section-title">Coordonnées</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value="{{ client.email if client else '' }}"
+              autocomplete="email"
+              placeholder="contact@exemple.fr"
+            >
+            {% if errors and errors.email %}
+              <span class="error-msg">{{ errors.email }}</span>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input
+              type="tel"
+              id="telephone"
+              name="telephone"
+              value="{{ client.telephone if client else '' }}"
+              autocomplete="tel"
+              placeholder="06 00 00 00 00"
+            >
+            {% if errors and errors.telephone %}
+              <span class="error-msg">{{ errors.telephone }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="adresse">Adresse</label>
+          <textarea
+            id="adresse"
+            name="adresse"
+            rows="3"
+            placeholder="Adresse complète"
+          >{{ client.adresse if client else '' }}</textarea>
+          {% if errors and errors.adresse %}
+            <span class="error-msg">{{ errors.adresse }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          {{ 'Enregistrer les modifications' if is_edit else 'Créer le client' }}
+        </button>
+        <a href="{{ url_for('client_detail', id=client.id) if is_edit else url_for('clients_list') }}" class="btn">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleClientType(type) {
+    var fieldsPersonne = document.getElementById('fields-personne');
+    var fieldsSociete = document.getElementById('fields-societe');
+
+    if (type === 'personne') {
+      fieldsPersonne.style.display = '';
+      fieldsSociete.style.display = 'none';
+      // Rendre les champs personne requis
+      document.getElementById('prenom').required = true;
+      document.getElementById('nom').required = true;
+      document.getElementById('raison_sociale').required = false;
+    } else {
+      fieldsPersonne.style.display = 'none';
+      fieldsSociete.style.display = '';
+      document.getElementById('prenom').required = false;
+      document.getElementById('nom').required = false;
+      document.getElementById('raison_sociale').required = true;
+    }
+  }
+
+  // Initialisation au chargement
+  document.addEventListener('DOMContentLoaded', function() {
+    var checked = document.querySelector('input[name="type"]:checked');
+    if (checked) {
+      toggleClientType(checked.value);
+    }
+  });
+</script>
+{% endblock %}

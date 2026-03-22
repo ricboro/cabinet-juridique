@@ -1,0 +1,90 @@
+{% if q and q | length >= 3 %}
+  {% set dossiers_results = results.dossiers if results else [] %}
+  {% set actes_results = results.actes if results else [] %}
+
+  {% if dossiers_results or actes_results %}
+
+    {# ── Dossiers ── #}
+    {% if dossiers_results %}
+    <div class="search-results-section">
+      <h2>Dossiers ({{ dossiers_results | length }})</h2>
+      {% for dossier in dossiers_results %}
+        <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="search-result-item">
+          <div style="flex: 1; min-width: 0;">
+            <div class="result-title">
+              <span style="font-family: 'Playfair Display SC', serif; font-size: 0.85rem; font-weight: 400;">{{ dossier.reference }}</span>
+              — {{ dossier.intitule }}
+            </div>
+            <div class="result-meta">
+              {% if dossier.client %}
+                {% if dossier.client.type == 'personne' %}{{ dossier.client.prenom }} {{ dossier.client.nom }}
+                {% else %}{{ dossier.client.raison_sociale }}{% endif %}
+                ·
+              {% endif %}
+              {% if dossier.date_ouverture %}ouvert le {{ dossier.date_ouverture.strftime('%d/%m/%Y') }}{% endif %}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            {% if dossier.statut == 'en_cours' %}
+              <span class="badge badge-en-cours">En cours</span>
+            {% elif dossier.statut == 'cloture' %}
+              <span class="badge badge-cloture">Clôturé</span>
+            {% elif dossier.statut == 'suspendu' %}
+              <span class="badge badge-suspendu">Suspendu</span>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# ── Actes ── #}
+    {% if actes_results %}
+    <div class="search-results-section">
+      <h2>Actes ({{ actes_results | length }})</h2>
+      {% for acte in actes_results %}
+        <div class="search-result-item" style="flex-direction: column; align-items: flex-start;">
+          <div style="display: flex; align-items: center; gap: 10px; width: 100%; flex-wrap: wrap;">
+            <div class="result-title" style="flex: 1;">{{ acte.nom }}</div>
+            {% if acte.type_acte %}
+              <span class="badge badge-cloture">{{ acte.type_acte.libelle }}</span>
+            {% endif %}
+            {% if acte.date_production %}
+              <span class="text-muted text-small">{{ acte.date_production.strftime('%d/%m/%Y') }}</span>
+            {% endif %}
+            {% if acte.lien_onedrive %}
+              <a href="{{ acte.lien_onedrive }}" target="_blank" rel="noopener noreferrer"
+                 class="btn btn-sm" style="font-size: 0.75rem;" onclick="event.stopPropagation();">
+                OneDrive ↗
+              </a>
+            {% endif %}
+          </div>
+          {% if acte.acte_dossiers %}
+            <div class="result-meta" style="margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <span>Dossiers :</span>
+              {% for ad in acte.acte_dossiers %}
+                <a href="{{ url_for('dossier_detail', id=ad.dossier.id) }}" style="font-family: 'Playfair Display SC', serif; font-size: 0.8rem; font-weight: 400;">
+                  {{ ad.dossier.reference }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if acte.acte_tags %}
+            <div class="tags-list" style="margin-top: 6px;">
+              {% for at in acte.acte_tags %}
+                <span class="tag">{{ at.tag.libelle }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <p>Aucun résultat pour « {{ q }} ».</p>
+    </div>
+  {% endif %}
+{% endif %}

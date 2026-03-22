@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Types d'actes — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div class="page-header">
+    <h1 class="page-title">Types d'actes</h1>
+  </div>
+
+  {# ── Message d'erreur ── #}
+  {% if error %}
+    <div class="flash flash-error" style="margin-bottom: 20px; border-radius: 4px;">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  {# ── Formulaire ajout inline ── #}
+  <div class="card" style="margin-bottom: 20px;">
+    <div class="card-title">Ajouter un type</div>
+    <form action="{{ url_for('type_acte_create') }}" method="post" novalidate>
+      <div class="inline-form">
+        <div class="form-group">
+          <label for="libelle" class="sr-only">Libellé du type d'acte</label>
+          <input
+            type="text"
+            id="libelle"
+            name="libelle"
+            placeholder="Ex. : Assignation, Conclusions, Ordonnance…"
+            required
+            autocomplete="off"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+
+  {# ── Tableau ── #}
+  {% if type_actes %}
+    <div class="card" style="padding: 0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Libellé</th>
+              <th>Actes associés</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ta in type_actes %}
+            <tr>
+              <td style="font-weight: 500;">{{ ta.libelle }}</td>
+              <td class="text-muted text-small">
+                {% if ta.usage_count > 0 %}
+                  {{ ta.usage_count }} acte{{ 's' if ta.usage_count > 1 }}
+                {% else %}
+                  <span class="text-muted">Aucun</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if ta.usage_count == 0 %}
+                  <form action="{{ url_for('type_acte_delete', id=ta.id) }}" method="post" style="display:inline;"
+                        onsubmit="return confirm('Supprimer le type « {{ ta.libelle }} » ?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                  </form>
+                {% else %}
+                  <span class="text-muted text-small" title="Ce type est utilisé par {{ ta.usage_count }} acte(s) et ne peut pas être supprimé.">
+                    En usage
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p>Aucun type d'acte défini.</p>
+      <p class="text-small">Utilisez le formulaire ci-dessus pour créer votre premier type.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

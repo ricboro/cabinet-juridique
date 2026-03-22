@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — Cabinet Juridique{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <h1 class="page-title">Tableau de bord</h1>
+
+  {# ── Statistiques ── #}
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Clients</div>
+      <div class="stat-value">{{ stats.clients_count }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dossiers en cours</div>
+      <div class="stat-value">{{ stats.dossiers_en_cours }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Actes produits</div>
+      <div class="stat-value">{{ stats.actes_count }}</div>
+    </div>
+  </div>
+
+  {# ── Derniers dossiers ── #}
+  <div class="section-heading">
+    <h2>Derniers dossiers ouverts</h2>
+    <a href="{{ url_for('dossiers_list') }}" class="btn btn-sm">Voir tous les dossiers</a>
+  </div>
+
+  {% if derniers_dossiers %}
+    <div class="card" style="padding: 0;">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Intitulé</th>
+              <th>Client</th>
+              <th>Statut</th>
+              <th>Date d'ouverture</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dossier in derniers_dossiers %}
+            <tr>
+              <td>
+                <a href="{{ url_for('dossier_detail', id=dossier.id) }}" style="font-family: 'Playfair Display SC', serif; font-size: 0.875rem; text-decoration: none; font-weight: 400;">
+                  {{ dossier.reference }}
+                </a>
+              </td>
+              <td>{{ dossier.intitule }}</td>
+              <td>
+                <a href="{{ url_for('client_detail', id=dossier.client.id) }}">
+                  {% if dossier.client.type == 'personne' %}
+                    {{ dossier.client.prenom }} {{ dossier.client.nom }}
+                  {% else %}
+                    {{ dossier.client.raison_sociale }}
+                  {% endif %}
+                </a>
+              </td>
+              <td>
+                {% if dossier.statut == 'en_cours' %}
+                  <span class="badge badge-en-cours">En cours</span>
+                {% elif dossier.statut == 'cloture' %}
+                  <span class="badge badge-cloture">Clôturé</span>
+                {% elif dossier.statut == 'suspendu' %}
+                  <span class="badge badge-suspendu">Suspendu</span>
+                {% endif %}
+              </td>
+              <td class="text-muted text-small">
+                {{ dossier.date_ouverture.strftime('%d/%m/%Y') if dossier.date_ouverture }}
+              </td>
+              <td>
+                <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="btn btn-sm">Voir</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📁</div>
+      <p>Aucun dossier ouvert pour le moment.</p>
+      <a href="{{ url_for('dossier_new') }}" class="btn btn-primary">Créer un premier dossier</a>
+    </div>
+  {% endif %}
+
+  {# ── Liens rapides ── #}
+  <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="{{ url_for('client_new') }}" class="btn">+ Nouveau client</a>
+    <a href="{{ url_for('dossier_new') }}" class="btn btn-primary">+ Nouveau dossier</a>
+    <a href="{{ url_for('acte_new') }}" class="btn">+ Nouvel acte</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+<tr id="client-row-{{ client.id }}">
+  <td>
+    <a href="{{ url_for('client_detail', id=client.id) }}" style="font-weight: 500; text-decoration: none;">
+      {% if client.type == 'personne' %}
+        {{ client.prenom }} {{ client.nom }}
+      {% else %}
+        {{ client.raison_sociale }}
+      {% endif %}
+    </a>
+  </td>
+  <td>
+    <span class="badge badge-cloture">
+      {{ 'Personne' if client.type == 'personne' else 'Société' }}
+    </span>
+  </td>
+  <td class="text-small">
+    {% if client.email %}
+      <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+    {% else %}
+      <span class="text-muted">—</span>
+    {% endif %}
+  </td>
+  <td class="text-small text-muted">{{ client.telephone or '—' }}</td>
+  <td class="text-small text-muted">{{ client.dossiers | length }}</td>
+  <td>
+    <div class="table-actions">
+      <a href="{{ url_for('client_detail', id=client.id) }}" class="btn btn-sm">Voir</a>
+      <a href="{{ url_for('client_edit', id=client.id) }}" class="btn btn-sm">Modifier</a>
+    </div>
+  </td>
+</tr>

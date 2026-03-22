@@ -1,0 +1,44 @@
+<tr id="dossier-row-{{ dossier.id }}">
+  <td>
+    <a href="{{ url_for('dossier_detail', id=dossier.id) }}" style="font-family: 'Playfair Display SC', serif; font-size: 0.875rem; text-decoration: none; font-weight: 400;">
+      {{ dossier.reference }}
+    </a>
+  </td>
+  <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+    {{ dossier.intitule }}
+  </td>
+  <td>
+    {% if dossier.client %}
+      <a href="{{ url_for('client_detail', id=dossier.client.id) }}">
+        {% if dossier.client.type == 'personne' %}
+          {{ dossier.client.prenom }} {{ dossier.client.nom }}
+        {% else %}
+          {{ dossier.client.raison_sociale }}
+        {% endif %}
+      </a>
+    {% else %}
+      <span class="text-muted">—</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if dossier.statut == 'en_cours' %}
+      <span class="badge badge-en-cours">En cours</span>
+    {% elif dossier.statut == 'cloture' %}
+      <span class="badge badge-cloture">Clôturé</span>
+    {% elif dossier.statut == 'suspendu' %}
+      <span class="badge badge-suspendu">Suspendu</span>
+    {% endif %}
+  </td>
+  <td class="text-small text-muted">
+    {{ dossier.date_ouverture.strftime('%d/%m/%Y') if dossier.date_ouverture else '—' }}
+  </td>
+  <td class="text-small text-muted">
+    {{ dossier.date_echeance.strftime('%d/%m/%Y') if dossier.date_echeance else '—' }}
+  </td>
+  <td>
+    <div class="table-actions">
+      <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="btn btn-sm">Voir</a>
+      <a href="{{ url_for('dossier_edit', id=dossier.id) }}" class="btn btn-sm">Modifier</a>
+    </div>
+  </td>
+</tr>
