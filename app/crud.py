@@ -356,37 +356,45 @@ def search(
     if len(q) < 3 and not has_filters:
         return {"dossiers": [], "actes": []}
 
-    # ── Dossiers ──────────────────────────────────────────────────
-    dossier_query = db.query(Dossier)
-    if len(q) >= 3:
-        pattern = f"%{q}%"
-        dossier_query = dossier_query.filter(
-            or_(
-                Dossier.intitule.ilike(pattern),
-                Dossier.reference.ilike(pattern),
-                Dossier.contexte.ilike(pattern),
+    has_dossier_filter = any([client_id, avocat_id, statut])
+    has_acte_filter    = any([type_acte_id, tag])
+
+    # ── Dossiers : uniquement si mot-clé OU filtre dossier actif ──
+    if len(q) >= 3 or has_dossier_filter:
+        pattern = f"%{q}%" if len(q) >= 3 else None
+        dossier_query = db.query(Dossier)
+        if pattern:
+            dossier_query = dossier_query.filter(
+                or_(
+                    Dossier.intitule.ilike(pattern),
+                    Dossier.reference.ilike(pattern),
+                    Dossier.contexte.ilike(pattern),
+                )
             )
-        )
-    if client_id:
-        dossier_query = dossier_query.filter(Dossier.client_id == client_id)
-    if avocat_id:
-        dossier_query = dossier_query.filter(Dossier.avocat_id == avocat_id)
-    if statut:
-        dossier_query = dossier_query.filter(Dossier.statut == statut)
+        if client_id:
+            dossier_query = dossier_query.filter(Dossier.client_id == client_id)
+        if avocat_id:
+            dossier_query = dossier_query.filter(Dossier.avocat_id == avocat_id)
+        if statut:
+            dossier_query = dossier_query.filter(Dossier.statut == statut)
+        dossiers = dossier_query.all()
+    else:
+        dossiers = []
 
-    # ── Actes ─────────────────────────────────────────────────────
-    acte_query = db.query(Acte)
-    if len(q) >= 3:
-        acte_query = acte_query.filter(Acte.nom.ilike(f"%{q}%"))
-    if type_acte_id:
-        acte_query = acte_query.filter(Acte.type_acte_id == type_acte_id)
-    if tag:
-        acte_query = (
-            acte_query.join(ActeTag).join(Tag)
-            .filter(Tag.libelle.ilike(f"%{tag}%"))
-        )
+    # ── Actes : uniquement si mot-clé OU filtre acte actif ────────
+    if len(q) >= 3 or has_acte_filter:
+        acte_query = db.query(Acte)
+        if len(q) >= 3:
+            acte_query = acte_query.filter(Acte.nom.ilike(f"%{q}%"))
+        if type_acte_id:
+            acte_query = acte_query.filter(Acte.type_acte_id == type_acte_id)
+        if tag:
+            acte_query = (
+                acte_query.join(ActeTag).join(Tag)
+                .filter(Tag.libelle.ilike(f"%{tag}%"))
+            )
+        actes = acte_query.all()
+    else:
+        actes = []
 
-    return {
-        "dossiers": dossier_query.all(),
-        "actes": acte_query.all(),
-    }
+    return {"dossiers": dossiers, "actes": actes}
