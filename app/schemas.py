@@ -179,7 +179,7 @@ class ActeBase(BaseModel):
 
 
 class ActeCreate(ActeBase):
-    dossier_ids: list[int] = []
+    dossier_id: Optional[int] = None
     tag_ids: list[int] = []
     tag_libelles: list[str] = []
 
@@ -189,7 +189,7 @@ class ActeUpdate(BaseModel):
     type_acte_id: Optional[int] = None
     lien_onedrive: Optional[str] = None
     date_production: Optional[datetime.date] = None
-    dossier_ids: Optional[list[int]] = None
+    dossier_id: Optional[int] = None
     tag_ids: Optional[list[int]] = None
     tag_libelles: Optional[list[str]] = None
 
@@ -206,7 +206,7 @@ class ActeResponse(ActeBase):
 
     id: int
     type_acte: Optional[TypeActeSimple] = None
-    dossiers: list[DossierSimple] = []
+    dossier: Optional[DossierSimple] = None
     tags: list[TagResponse] = []
 
 

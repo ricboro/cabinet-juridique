@@ -3,7 +3,7 @@ import bcrypt
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 
-from app.models import Avocat, Client, Dossier, Echeance, TypeActe, Acte, ActeDossier, Tag, ActeTag
+from app.models import Avocat, Client, Dossier, Echeance, TypeActe, Acte, Tag, ActeTag
 from app.schemas import ClientCreate, ClientUpdate, DossierCreate, DossierUpdate, EcheanceCreate, ActeCreate, ActeUpdate
 
 
@@ -178,7 +178,6 @@ def delete_dossier(db: Session, dossier_id: int) -> bool:
     dossier = get_dossier(db, dossier_id)
     if not dossier:
         return False
-    db.query(ActeDossier).filter(ActeDossier.dossier_id == dossier_id).delete()
     db.delete(dossier)
     db.commit()
     return True
@@ -301,12 +300,10 @@ def create_acte(db: Session, data: ActeCreate) -> Acte:
         type_acte_id=data.type_acte_id,
         lien_onedrive=data.lien_onedrive,
         date_production=data.date_production,
+        dossier_id=data.dossier_id,
     )
     db.add(acte)
     db.flush()
-
-    for dossier_id in data.dossier_ids:
-        db.add(ActeDossier(acte_id=acte.id, dossier_id=dossier_id))
 
     tags = _resolve_tags(db, data.tag_ids, data.tag_libelles)
     for tag in tags:
@@ -322,15 +319,10 @@ def update_acte(db: Session, acte_id: int, data: ActeUpdate) -> Acte | None:
     if not acte:
         return None
 
-    scalar_fields = {"nom", "type_acte_id", "lien_onedrive", "date_production"}
+    scalar_fields = {"nom", "type_acte_id", "lien_onedrive", "date_production", "dossier_id"}
     for field, value in data.model_dump(exclude_unset=True).items():
         if field in scalar_fields:
             setattr(acte, field, value)
-
-    if data.dossier_ids is not None:
-        db.query(ActeDossier).filter(ActeDossier.acte_id == acte_id).delete()
-        for dossier_id in data.dossier_ids:
-            db.add(ActeDossier(acte_id=acte_id, dossier_id=dossier_id))
 
     if data.tag_ids is not None or data.tag_libelles is not None:
         db.query(ActeTag).filter(ActeTag.acte_id == acte_id).delete()

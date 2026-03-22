@@ -49,7 +49,7 @@ class Dossier(Base):
 
     client = relationship("Client", back_populates="dossiers")
     avocat = relationship("Avocat", back_populates="dossiers")
-    acte_dossiers = relationship("ActeDossier", back_populates="dossier", cascade="all, delete-orphan")
+    actes = relationship("Acte", back_populates="dossier", cascade="all, delete-orphan")
     echeances = relationship("Echeance", back_populates="dossier", cascade="all, delete-orphan", order_by="Echeance.date")
 
 
@@ -70,20 +70,11 @@ class Acte(Base):
     type_acte_id = Column(Integer, ForeignKey("type_actes.id"), nullable=False)
     lien_onedrive = Column(String(2000), nullable=False)
     date_production = Column(Date, nullable=False)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id"), nullable=True)
 
     type_acte = relationship("TypeActe", back_populates="actes")
-    acte_dossiers = relationship("ActeDossier", back_populates="acte", cascade="all, delete-orphan")
+    dossier = relationship("Dossier", back_populates="actes")
     acte_tags = relationship("ActeTag", back_populates="acte", cascade="all, delete-orphan")
-
-
-class ActeDossier(Base):
-    __tablename__ = "acte_dossiers"
-
-    acte_id = Column(Integer, ForeignKey("actes.id"), primary_key=True)
-    dossier_id = Column(Integer, ForeignKey("dossiers.id"), primary_key=True)
-
-    acte = relationship("Acte", back_populates="acte_dossiers")
-    dossier = relationship("Dossier", back_populates="acte_dossiers")
 
 
 class Tag(Base):

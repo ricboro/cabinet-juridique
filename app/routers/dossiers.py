@@ -137,7 +137,7 @@ async def dossier_detail(
         response = RedirectResponse(url=request.url_for("dossiers_list"), status_code=303)
         set_flash(response, "Dossier introuvable", "error")
         return response
-    actes = [ad.acte for ad in dossier.acte_dossiers]
+    actes = dossier.actes
     return templates.TemplateResponse(
         "pages/dossiers/detail.html",
         make_context(request, current_user, dossier=dossier, actes=actes),

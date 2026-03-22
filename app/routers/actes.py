@@ -65,7 +65,8 @@ async def acte_create(
     type_acte_id_raw = form.get("type_acte_id", "")
     lien_onedrive = (form.get("lien_onedrive") or "").strip()
     date_production = parse_date(form.get("date_production", ""))
-    dossier_ids = [int(x) for x in form.getlist("dossier_ids") if x]
+    dossier_id_raw = form.get("dossier_id", "")
+    dossier_id = int(dossier_id_raw) if dossier_id_raw else None
     tag_libelles = [t.strip() for t in form.getlist("tag_libelles") if t.strip()]
 
     form_data = {
@@ -84,7 +85,7 @@ async def acte_create(
             make_context(request, current_user,
                          acte=form_data, is_edit=False,
                          type_actes=type_actes, dossiers=dossiers,
-                         preselect_dossier_id=dossier_ids[0] if dossier_ids else None,
+                         preselect_dossier_id=dossier_id,
                          errors=errors),
             status_code=422,
         )
@@ -94,13 +95,13 @@ async def acte_create(
         type_acte_id=int(type_acte_id_raw),
         lien_onedrive=lien_onedrive,
         date_production=date_production,
-        dossier_ids=dossier_ids,
+        dossier_id=dossier_id,
         tag_libelles=tag_libelles,
     )
     acte = crud.create_acte(db, data)
 
-    if dossier_ids:
-        redirect_url = request.url_for("dossier_detail", id=dossier_ids[0])
+    if dossier_id:
+        redirect_url = request.url_for("dossier_detail", id=dossier_id)
     else:
         redirect_url = request.url_for("dossiers_list")
 
@@ -169,7 +170,8 @@ async def acte_update(
     type_acte_id_raw = form.get("type_acte_id", "")
     lien_onedrive = (form.get("lien_onedrive") or "").strip()
     date_production = parse_date(form.get("date_production", ""))
-    dossier_ids = [int(x) for x in form.getlist("dossier_ids") if x]
+    dossier_id_raw = form.get("dossier_id", "")
+    dossier_id = int(dossier_id_raw) if dossier_id_raw else None
     tag_libelles = [t.strip() for t in form.getlist("tag_libelles") if t.strip()]
 
     form_data = {
@@ -197,18 +199,14 @@ async def acte_update(
         type_acte_id=int(type_acte_id_raw) if type_acte_id_raw else None,
         lien_onedrive=lien_onedrive,
         date_production=date_production,
-        dossier_ids=dossier_ids,
+        dossier_id=dossier_id,
         tag_libelles=tag_libelles,
     )
     crud.update_acte(db, id, update_data)
 
-    # Redirect vers le premier dossier lié
     updated_acte = crud.get_acte(db, id)
-    if updated_acte and updated_acte.acte_dossiers:
-        redirect_url = request.url_for(
-            "dossier_detail",
-            id=updated_acte.acte_dossiers[0].dossier_id,
-        )
+    if updated_acte and updated_acte.dossier_id:
+        redirect_url = request.url_for("dossier_detail", id=updated_acte.dossier_id)
     else:
         redirect_url = request.url_for("dossiers_list")
 
