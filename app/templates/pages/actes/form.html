@@ -44,7 +44,7 @@
           <div class="form-group">
             <label for="type_acte_id">Type d'acte <span class="required">*</span></label>
             <select name="type_acte_id" id="type_acte_id" required>
-              <option value="">-- Sélectionner --</option>
+              <option value="">- Sélectionner -</option>
               {% for ta in type_actes %}
                 <option value="{{ ta.id }}" {% if acte and acte.type_acte_id == ta.id %}selected{% endif %}>
                   {{ ta.libelle }}
@@ -93,7 +93,7 @@
         <div class="form-group">
           <label for="dossier_id">Dossier associé</label>
           <select name="dossier_id" id="dossier_id">
-            <option value="">-- Aucun dossier --</option>
+            <option value="">- Aucun dossier -</option>
             {% for d in dossiers %}
               <option
                 value="{{ d.id }}"
