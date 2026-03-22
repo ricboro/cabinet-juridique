@@ -15,16 +15,21 @@ router = APIRouter()
 async def search_page(
     request: Request,
     q: Optional[str] = None,
-    type_acte_id: Optional[int] = None,
+    type_acte_id: Optional[str] = None,
     tag: Optional[str] = None,
-    client_id: Optional[int] = None,
-    avocat_id: Optional[int] = None,
+    client_id: Optional[str] = None,
+    avocat_id: Optional[str] = None,
     statut: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
     q = q or ""
+    type_acte_id = int(type_acte_id) if type_acte_id else None
+    client_id    = int(client_id)    if client_id    else None
+    avocat_id    = int(avocat_id)    if avocat_id    else None
+    tag          = tag.strip()       if tag          else None
+    statut       = statut            if statut       else None
     has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
     if len(q) >= 3 or has_filters:
         results = crud.search(
@@ -58,16 +63,21 @@ async def search_page(
 async def search_htmx(
     request: Request,
     q: Optional[str] = None,
-    type_acte_id: Optional[int] = None,
+    type_acte_id: Optional[str] = None,
     tag: Optional[str] = None,
-    client_id: Optional[int] = None,
-    avocat_id: Optional[int] = None,
+    client_id: Optional[str] = None,
+    avocat_id: Optional[str] = None,
     statut: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
     q = q or ""
+    type_acte_id = int(type_acte_id) if type_acte_id else None
+    client_id    = int(client_id)    if client_id    else None
+    avocat_id    = int(avocat_id)    if avocat_id    else None
+    tag          = tag.strip()       if tag          else None
+    statut       = statut            if statut       else None
     has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
     if len(q) >= 3 or has_filters:
         results = crud.search(
