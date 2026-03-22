@@ -14,7 +14,7 @@
 
   <h1 class="page-title">{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }}</h1>
 
-  <div class="card" style="max-width: 720px;">
+  <div class="card" style="max-width: 720px; margin: 0 auto;">
     <form
       action="{{ url_for('acte_update', id=acte.id) if is_edit else url_for('acte_create') }}"
       method="post"
