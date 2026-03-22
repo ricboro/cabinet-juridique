@@ -9,29 +9,28 @@
   {# ── Barre de recherche principale ── #}
   <div class="card" style="margin-bottom: 20px;">
     <form method="get" action="{{ url_for('search_page') }}" id="search-form">
-      <div class="form-group search-main-bar" style="margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-end;">
-        <div style="flex: 1;">
-          <label for="search-q" class="sr-only">Recherche</label>
-          <input
-            type="text"
-            id="search-q"
-            name="q"
-            value="{{ q | default('') }}"
-            placeholder="Rechercher dans les dossiers, actes…"
-            autocomplete="off"
-            hx-get="{{ url_for('search_htmx') }}"
-            hx-trigger="keyup[value.length>=3] delay:300ms"
-            hx-target="#search-results-container"
-            hx-swap="innerHTML"
-            hx-include="#search-form"
-          >
-        </div>
-        <button type="submit" class="btn btn-primary">Rechercher</button>
+      {# ── Barre principale pleine largeur ── #}
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label for="search-q" class="sr-only">Recherche</label>
+        <input
+          type="text"
+          id="search-q"
+          name="q"
+          value="{{ q | default('') }}"
+          placeholder="Rechercher dans les dossiers, actes…"
+          autocomplete="off"
+          style="width: 100%;"
+          hx-get="{{ url_for('search_htmx') }}"
+          hx-trigger="keyup[value.length>=3] delay:300ms"
+          hx-target="#search-results-container"
+          hx-swap="innerHTML"
+          hx-include="#search-form"
+        >
       </div>
 
-      {# ── Filtres secondaires ── #}
-      <div class="filters-bar" style="padding: 0; border: none; background: none; margin-bottom: 0;">
-        <div class="form-group">
+      {# ── Filtres + bouton sur la même ligne ── #}
+      <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
           <label for="type_acte_id">Type d'acte</label>
           <select name="type_acte_id" id="type_acte_id"
                   hx-get="{{ url_for('search_htmx') }}"
@@ -46,7 +45,7 @@
             {% endfor %}
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
           <label for="statut-filter">Statut dossier</label>
           <select name="statut" id="statut-filter"
                   hx-get="{{ url_for('search_htmx') }}"
@@ -59,7 +58,7 @@
             <option value="suspendu" {% if filters.statut == 'suspendu' %}selected{% endif %}>Suspendu</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 140px;">
           <label for="tag-filter">Tag</label>
           <input
             type="text"
@@ -73,11 +72,12 @@
             hx-include="#search-form"
           >
         </div>
-        {% if q or filters.type_acte_id or filters.statut or filters.tag %}
-          <div class="form-group" style="align-self: flex-end;">
+        <div style="display: flex; gap: 8px; align-items: center; padding-bottom: 1px;">
+          {% if q or filters.type_acte_id or filters.statut or filters.tag %}
             <a href="{{ url_for('search_page') }}" class="btn btn-sm">Réinitialiser</a>
-          </div>
-        {% endif %}
+          {% endif %}
+          <button type="submit" class="btn btn-primary">Rechercher</button>
+        </div>
       </div>
     </form>
   </div>
