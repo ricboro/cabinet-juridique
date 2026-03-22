@@ -823,7 +823,7 @@ table {
 }
 
 thead th {
-  text-align: left;
+  text-align: center;
   border-bottom: 2px solid var(--border-strong);
   padding: 10px 12px;
   font-size: 0.75rem;
@@ -838,6 +838,11 @@ tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  text-align: center;
+}
+thead th.col-left,
+tbody td.col-left {
+  text-align: left;
 }
 
 tbody tr:last-child td {

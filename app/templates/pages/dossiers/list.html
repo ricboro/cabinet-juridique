@@ -59,8 +59,8 @@
           <thead>
             <tr>
               <th>Référence</th>
-              <th>Intitulé</th>
-              <th>Client</th>
+              <th class="col-left">Intitulé</th>
+              <th class="col-left">Client</th>
               <th>Statut</th>
               <th>Ouverture</th>
               <th>Échéance</th>
@@ -75,10 +75,10 @@
                   {{ dossier.reference }}
                 </a>
               </td>
-              <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <td class="col-left" style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 {{ dossier.intitule }}
               </td>
-              <td>
+              <td class="col-left">
                 <a href="{{ url_for('client_detail', id=dossier.client.id) }}">
                   {% if dossier.client.type == 'personne' %}
                     {{ dossier.client.prenom }} {{ dossier.client.nom }}
