@@ -60,6 +60,12 @@
     </div>
 
     <div class="header-actions">
+      {% if current_user %}
+        <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
+        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm">Déconnexion</button>
+        </form>
+      {% endif %}
       {# Bouton toggle thème — mêmes icônes SVG que le VPS dashboard #}
       <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Basculer le thème">
         <!-- Soleil : visible en mode sombre pour repasser au clair -->
@@ -71,12 +77,6 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
         </svg>
       </button>
-      {% if current_user %}
-        <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
-        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
-          <button type="submit" class="btn btn-sm">Déconnexion</button>
-        </form>
-      {% endif %}
     </div>
   </header>
 
