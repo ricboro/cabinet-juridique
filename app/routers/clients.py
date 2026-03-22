@@ -32,6 +32,10 @@ def _validate_client_form(form_data: dict) -> dict:
     if email and not re.match(r"^[^@]+@[^@]+\.[^@]+$", email):
         errors["email"] = "Format d'email invalide"
 
+    telephone = (form_data.get("telephone") or "").strip()
+    if telephone and not re.match(r"^0[1-9](?:[\s.\-]?\d{2}){4}$", telephone):
+        errors["telephone"] = "Format invalide (ex : 06 00 00 00 00)"
+
     return errors
 
 
