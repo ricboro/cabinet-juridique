@@ -135,7 +135,7 @@ h4, h5, h6 {
 
 .search-bar input {
   width: 100%;
-  padding: 6px 12px 6px 36px;
+  padding: 6px 12px 6px 42px;
   border: 1px solid var(--border);
   border-radius: 20px;
   font: inherit;
