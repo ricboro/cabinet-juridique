@@ -418,10 +418,10 @@ fail2ban surveille les logs Nginx → ban automatique après 5 tentatives de log
 ### Flux d'authentification
 
 ```
-POST /login (email + password)
+POST /login (identifiant + password)
     |
     v
-crud.get_avocat_by_email() → récupère l'avocat
+crud.get_avocat_by_email() → récupère l'avocat par identifiant
     |
     v
 crud.verify_password() → bcrypt.checkpw()
