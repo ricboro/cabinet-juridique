@@ -125,19 +125,18 @@ Dossier ←────────── Client
 │    suspendu)
 ├── date_ouverture
 ├── date_cloture
-├── date_echeance
-├── date_audience
 ├── client_id (FK)
 └── avocat_id (FK)
       |
-      | N..N (via acte_dossiers)
-      v
-Acte ─────────────── Tag
-├── id (PK)          ├── id (PK)
-├── nom              └── libelle (unique)
-├── type_acte_id (FK)     ^
-├── lien_onedrive         | N..N (via acte_tags)
-└── date_production ──────┘
+      | 1..N          1..N
+      v                v
+Echeance           Acte ─────── Tag
+├── id (PK)        ├── id (PK)   ├── id (PK)
+├── dossier_id(FK) ├── nom       └── libelle (unique)
+├── libelle        ├── type_acte_id (FK)   ^
+└── date           ├── lien_onedrive       | N..N (via acte_tags)
+                   ├── date_production ────┘
+                   └── dossier_id (FK)
 
 TypeActe
 ├── id (PK)
@@ -148,13 +147,15 @@ TypeActe
 
 **Référence dossier** : format `AAAA-NNN` (ex: `2026-001`). Générée automatiquement a la création, compteur repart a `001` chaque 1er janvier. Algorithme : compte les références existantes commencant par `AAAA-` et incrémente.
 
-**Acte multi-dossiers** : un acte peut être lié a plusieurs dossiers via la table `acte_dossiers` (many-to-many). Cas d'usage : acte transversal (lettre commune a deux dossiers d'un même client, ou acte de procédure lié a une jonction de dossiers).
+**Un acte = un dossier** : un acte est lié à un seul dossier (FK directe `dossier_id`). C'est une contrainte métier : un acte produit dans le cadre d'un dossier y reste rattaché.
+
+**Échéances multiples** : un dossier peut avoir autant d'échéances que nécessaire (audiences, conciliations, délais...). Chaque échéance a un libellé libre et une date. Ajout et suppression depuis la fiche dossier ou le formulaire de modification.
 
 **Suppression protégée** :
 - `DELETE client` → bloqué si le client a des dossiers (ValueError → flash error)
 - `DELETE type_acte` → bloqué si des actes utilisent ce type
-- `DELETE dossier` → supprime les liaisons `acte_dossiers` mais ne supprime PAS les actes (un acte peut être lié a d'autres dossiers)
-- `DELETE acte` → supprime toutes ses liaisons dossiers et tags (cascade ORM)
+- `DELETE dossier` → supprime en cascade ses actes, échéances et tags associés
+- `DELETE acte` → supprime ses tags associés (cascade ORM)
 
 **Statuts dossier** :
 - `en_cours` : dossier actif
@@ -178,7 +179,8 @@ TypeActe
 - Référence auto-générée `AAAA-NNN`
 - Contexte libre (notes, références externes)
 - Statut : en cours / suspendu / clôturé
-- Dates : ouverture (obligatoire), clôture (auto a la clôture), échéance, audience (optionnelles)
+- Date d'ouverture (obligatoire), date de clôture (positionnée automatiquement a la clôture)
+- Échéances multiples (audience, conciliation, délai...) : libellé + date, ajout/suppression depuis la fiche
 - Filtres : statut, client, avocat
 - Clôture en 1 clic (bouton dédié)
 
@@ -187,8 +189,7 @@ TypeActe
 - Lien OneDrive (URL validée http/https obligatoire)
 - Type d'acte (liste prédéfinie extensible)
 - Tags libres avec autocomplétion (créés a la volée si nouveaux)
-- Liaison a un ou plusieurs dossiers (checkboxes)
-- Visible dans tous les dossiers liés
+- Liaison à un seul dossier (select)
 
 ### Types d'actes
 
@@ -222,11 +223,11 @@ L'avocate peut en ajouter depuis la page de gestion. Suppression impossible si d
 
 ```
 1. Fiche dossier → "Ajouter un acte"
-   (ou Actes → Nouvel acte → sélectionner le(s) dossier(s))
+   (ou Actes → Nouvel acte → sélectionner le dossier)
 2. Remplir : nom du document, type, coller le lien OneDrive, date de production
 3. Tags : taper pour autocomplétion, Entrée pour créer un nouveau tag
-4. Cocher le(s) dossier(s) liés (le dossier d'origine est pré-coché)
-5. Enregistrer → l'acte apparait dans tous les dossiers liés
+4. Sélectionner le dossier lié (pré-sélectionné si arrivé depuis la fiche dossier)
+5. Enregistrer → l'acte apparait dans la fiche du dossier
 ```
 
 ### Clôturer un dossier
@@ -254,8 +255,8 @@ cabinet-juridique/
 │   ├── main.py              # App FastAPI : lifespan, routes dashboard/login/logout,
 │   │                        #   helper make_context(), exception handler auth
 │   ├── database.py          # Engine SQLAlchemy, SessionLocal, Base, get_db(), init_db()
-│   ├── models.py            # 8 modeles ORM : Avocat, Client, Dossier, TypeActe,
-│   │                        #   Acte, ActeDossier, Tag, ActeTag
+│   ├── models.py            # 8 modeles ORM : Avocat, Client, Dossier, Echeance,
+│   │                        #   TypeActe, Acte, Tag, ActeTag
 │   ├── schemas.py           # Schemas Pydantic v2 (validation entrées/sorties API)
 │   ├── crud.py              # Toutes les fonctions CRUD (logique metier centralisée)
 │   ├── auth.py              # Session cookie itsdangerous, get_current_user(),
@@ -284,7 +285,7 @@ cabinet-juridique/
 │       │   │   ├── detail.html          # Fiche dossier + ses actes
 │       │   │   └── form.html            # Création / modification
 │       │   ├── actes/
-│       │   │   └── form.html            # Création / modification (tags HTMX + checkboxes dossiers)
+│       │   │   └── form.html            # Création / modification (tags HTMX + select dossier)
 │       │   ├── type_actes/
 │       │   │   └── list.html            # Liste + ajout inline + suppression
 │       │   └── search.html              # Page recherche complète avec filtres
@@ -309,7 +310,9 @@ cabinet-juridique/
 │   ├── env.py               # Config Alembic (lit DATABASE_URL depuis env)
 │   ├── script.py.mako       # Template migration
 │   └── versions/
-│       └── 0001_initial_schema.py  # Migration initiale : toutes les tables
+│       ├── 0001_initial_schema.py  # Migration initiale : toutes les tables
+│       ├── 0002_echeances.py       # Échéances multiples par dossier (libellé + date)
+│       └── 0003_acte_dossier_fk.py # Acte → FK dossier_id directe (suppression many-to-many)
 ├── data/
 │   └── .gitkeep             # Répertoire versionné mais cabinet.db gitignorée
 ├── Dockerfile               # python:3.12-slim, copie app/ + alembic/, EXPOSE 8092
@@ -566,7 +569,7 @@ pytest tests/test_routes_auth.py::test_login_success_redirects -v
 | `test_routes_auth.py` | 9 | login, logout, protection routes, flash |
 | `test_routes_clients.py` | 14 | CRUD routes, validation, pagination, tri |
 | `test_routes_dossiers.py` | 14 | CRUD routes, référence auto, clôture, 404 |
-| `test_routes_actes.py` | 14 | CRUD routes, tags, URL validation, multi-dossiers |
+| `test_routes_actes.py` | 14 | CRUD routes, tags, URL validation, dossier lié |
 | `test_search.py` | 8 | recherche, filtres, HTMX partial |
 | `test_utils.py` | 7 | parse_date (cas limites) |
 
