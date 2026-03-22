@@ -100,6 +100,103 @@
   height: 16px;
 }
 
+/* ── Guide modal ────────────────────────────────────────────── */
+.guide-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.guide-modal-overlay.open {
+  display: flex;
+}
+.guide-modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.guide-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.guide-modal-title {
+  font-family: 'Playfair Display SC', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.guide-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.guide-modal-close:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+.guide-modal-body {
+  padding: 20px 24px 24px;
+  overflow-y: auto;
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.guide-modal-body h2 {
+  font-family: 'Playfair Display SC', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 18px 0 8px;
+}
+.guide-modal-body h2:first-child {
+  margin-top: 0;
+}
+.guide-modal-body ul {
+  margin: 0 0 6px 0;
+  padding-left: 18px;
+}
+.guide-modal-body li {
+  margin-bottom: 5px;
+}
+.guide-modal-body code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.guide-modal-body kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 1px 6px;
+  box-shadow: 0 1px 0 var(--border-strong);
+}
+
 /* ── Reset & base ──────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

@@ -1,0 +1,81 @@
+{# ── Modal guide d'utilisation ── #}
+<div class="guide-modal-overlay" id="guide-modal" role="dialog" aria-modal="true" aria-label="Guide d'utilisation">
+  <div class="guide-modal-card">
+
+    <div class="guide-modal-header">
+      <span class="guide-modal-title">Guide d'utilisation</span>
+      <button class="guide-modal-close" id="guide-close" title="Fermer">✕</button>
+    </div>
+
+    <div class="guide-modal-body">
+
+      <h2>Clients</h2>
+      <ul>
+        <li>Créez une fiche <strong>personne physique</strong> (nom, prénom, coordonnées) ou <strong>société</strong> (raison sociale, SIRET)</li>
+        <li>La fiche client liste tous ses dossiers et permet d'en créer un nouveau directement</li>
+        <li>La suppression d'un client est <strong>bloquée</strong> tant qu'il a des dossiers actifs</li>
+      </ul>
+
+      <h2>Dossiers</h2>
+      <ul>
+        <li>La <strong>référence</strong> est générée automatiquement au format <code>AAAA-NNN</code> (ex : 2026-001) — repart à 001 chaque année</li>
+        <li>Statuts : <strong>En cours</strong> / <strong>Suspendu</strong> / <strong>Clôturé</strong> — modifiables à tout moment depuis le formulaire</li>
+        <li>Bouton <strong>Clôturer</strong> sur la fiche : positionne automatiquement la date de clôture à aujourd'hui</li>
+        <li><strong>Échéances</strong> : ajoutez autant d'échéances que nécessaire (audience, conciliation, délai…) depuis la fiche ou le formulaire de modification — chaque échéance a un libellé libre et une date</li>
+        <li>La suppression d'un dossier supprime également ses actes et échéances associés</li>
+      </ul>
+
+      <h2>Actes</h2>
+      <ul>
+        <li>Un acte est lié à <strong>un seul dossier</strong> — accédez au formulaire depuis la fiche dossier (dossier pré-sélectionné) ou depuis le menu</li>
+        <li>Le <strong>lien OneDrive</strong> est obligatoire (URL http/https) — l'acte pointe vers le document, il n'est pas stocké ici</li>
+        <li><strong>Tags</strong> : saisissez pour autocomplétion, appuyez sur Entrée pour créer un nouveau tag à la volée</li>
+        <li>Le <strong>type d'acte</strong> est obligatoire — gérez la liste depuis la page Types d'actes</li>
+      </ul>
+
+      <h2>Types d'actes</h2>
+      <ul>
+        <li>12 types pré-installés : Contrat, Assignation, Conclusions, Courrier, Ordonnance, Jugement, Appel, Requête, Mémoire, Acte de procédure, Mise en demeure, Protocole d'accord</li>
+        <li>Ajoutez vos propres types depuis la page <strong>Types d'actes</strong></li>
+        <li>La suppression d'un type est <strong>bloquée</strong> s'il est utilisé par des actes existants</li>
+      </ul>
+
+      <h2>Recherche</h2>
+      <ul>
+        <li><strong>Barre du header</strong> : résultats live dès 3 caractères (debounce 300 ms) — dossiers et actes</li>
+        <li><strong>Page Recherche</strong> : filtres avancés combinables — type d'acte, tag, client, avocat, statut dossier</li>
+        <li>Un filtre seul (sans texte) suffit — ex : tous les actes tagués « urgent »</li>
+        <li>Les résultats sont groupés en deux sections : <strong>Dossiers</strong> et <strong>Actes</strong></li>
+      </ul>
+
+      <h2>Interface</h2>
+      <ul>
+        <li><strong>Mode sombre</strong> : bouton à droite du bouton Déconnexion — préférence mémorisée</li>
+        <li>Touche <kbd>Échap</kbd> pour fermer ce guide</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById('guide-modal');
+    var close = document.getElementById('guide-close');
+
+    document.querySelectorAll('.guide-trigger').forEach(function (el) {
+      el.addEventListener('click', function () {
+        modal.classList.add('open');
+      });
+    });
+    close.addEventListener('click', function () {
+      modal.classList.remove('open');
+    });
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') modal.classList.remove('open');
+    });
+  })();
+</script>
