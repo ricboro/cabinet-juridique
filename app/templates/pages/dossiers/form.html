@@ -141,6 +141,26 @@
         {% endif %}
       </div>
 
+      {# ── Échéances existantes (modification uniquement) ── #}
+      {% if is_edit and dossier.echeances %}
+      <div class="form-section">
+        <div class="form-section-title">Échéances</div>
+        <ul class="echeances-list" style="margin-bottom: 0;">
+          {% for e in dossier.echeances %}
+            <li class="echeance-item">
+              <div class="echeance-info">
+                <span class="echeance-date">{{ e.date.strftime('%d/%m/%Y') }}</span>
+                <span class="echeance-libelle">{{ e.libelle }}</span>
+              </div>
+              <form action="{{ url_for('echeance_delete', id=dossier.id, eid=e.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="btn-icon-delete" title="Supprimer">×</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">
           {{ 'Enregistrer les modifications' if is_edit else 'Créer le dossier' }}

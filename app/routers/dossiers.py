@@ -245,10 +245,14 @@ async def echeance_create(
     date = parse_date(form.get("date", ""))
     if libelle and date:
         crud.create_echeance(db, id, EcheanceCreate(libelle=libelle, date=date))
-    return templates.TemplateResponse(
-        "partials/echeances.html",
-        make_context(request, current_user, dossier=dossier),
-    )
+    db.refresh(dossier)
+    # Si requête HTMX → renvoyer le partial ; sinon → rediriger vers la fiche
+    if request.headers.get("HX-Request"):
+        return templates.TemplateResponse(
+            "partials/echeances.html",
+            make_context(request, current_user, dossier=dossier),
+        )
+    return RedirectResponse(url=request.url_for("dossier_detail", id=id), status_code=303)
 
 
 @router.post("/dossiers/{id}/echeances/{eid}/delete", name="echeance_delete")
@@ -259,16 +263,12 @@ async def echeance_delete(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    from app.main import templates, make_context
     dossier = crud.get_dossier(db, id)
     if not dossier:
         return RedirectResponse(url=request.url_for("dossiers_list"), status_code=303)
     crud.delete_echeance(db, eid)
-    db.refresh(dossier)
-    return templates.TemplateResponse(
-        "partials/echeances.html",
-        make_context(request, current_user, dossier=dossier),
-    )
+    # Rediriger vers la page d'édition pour rester dans le contexte de modification
+    return RedirectResponse(url=request.url_for("dossier_edit", id=id), status_code=303)
 
 
 @router.post("/dossiers/{id}/delete", name="dossier_delete")
