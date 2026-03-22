@@ -30,3 +30,4 @@ htmlcov/
 # Nginx certs
 nginx/certs/
 logs/
+backups/
