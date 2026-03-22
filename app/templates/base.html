@@ -58,11 +58,24 @@
     </div>
   </header>
 
-  {# ── Flash messages ── #}
+  {# ── Flash messages (auto-dismiss 4s, clic pour fermer) ── #}
   {% if flash_message %}
-    <div class="flash flash-{{ flash_type | default('info') }}" role="alert">
+    <div class="flash flash-{{ flash_type | default('info') }}" role="alert" id="flash-msg">
       {{ flash_message }}
+      <button class="flash-close" onclick="document.getElementById('flash-msg').remove()" aria-label="Fermer">×</button>
     </div>
+    <script>
+      (function() {
+        var el = document.getElementById('flash-msg');
+        if (el) {
+          setTimeout(function() {
+            el.style.transition = 'opacity 0.4s';
+            el.style.opacity = '0';
+            setTimeout(function() { el.remove(); }, 420);
+          }, 4000);
+        }
+      })();
+    </script>
   {% endif %}
 
   {# ── Contenu principal ── #}
