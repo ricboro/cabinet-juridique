@@ -142,6 +142,57 @@
   height: 16px;
 }
 
+/* ── Menu utilisateur ───────────────────────────────────────── */
+.user-menu {
+  position: relative;
+}
+.user-menu-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: background 0.15s;
+  font-size: 0.8rem;
+}
+.user-menu-trigger:hover {
+  background: var(--bg);
+}
+.user-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  min-width: 160px;
+  z-index: 200;
+  overflow: hidden;
+}
+.user-menu-dropdown.open {
+  display: block;
+}
+.user-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text);
+  transition: background 0.12s;
+}
+.user-menu-item:hover {
+  background: var(--bg);
+}
+
 /* ── Bouton guide ───────────────────────────────────────────── */
 .guide-btn {
   width: 1.7rem;

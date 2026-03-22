@@ -59,10 +59,19 @@
     <div class="header-actions">
       {% if current_user %}
         <button class="guide-trigger guide-btn" title="Guide d'utilisation">?</button>
-        <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
-        <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
-          <button type="submit" class="btn btn-sm">Déconnexion</button>
-        </form>
+        <div class="user-menu" id="user-menu">
+          <button class="user-menu-trigger text-muted text-small" id="user-menu-btn" type="button">
+            {{ current_user.prenom }} {{ current_user.nom }}
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="margin-left:4px;opacity:0.5;">
+              <path d="M1 3l4 4 4-4"/>
+            </svg>
+          </button>
+          <div class="user-menu-dropdown" id="user-menu-dropdown">
+            <form action="{{ url_for('logout') }}" method="post">
+              <button type="submit" class="user-menu-item">Se déconnecter</button>
+            </form>
+          </div>
+        </div>
       {% endif %}
       {# Bouton toggle thème — mêmes icônes SVG que le VPS dashboard #}
       <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Basculer le thème">
@@ -140,7 +149,21 @@
       if (wrapper && results && !wrapper.contains(e.target)) {
         results.innerHTML = '';
       }
+      // Menu utilisateur
+      var menu = document.getElementById('user-menu');
+      var dropdown = document.getElementById('user-menu-dropdown');
+      if (menu && dropdown && !menu.contains(e.target)) {
+        dropdown.classList.remove('open');
+      }
     });
+
+    var userBtn = document.getElementById('user-menu-btn');
+    if (userBtn) {
+      userBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('user-menu-dropdown').classList.toggle('open');
+      });
+    }
 
     // Vider le dropdown si l'input est vidé
     var searchInput = document.getElementById('header-search-input');
