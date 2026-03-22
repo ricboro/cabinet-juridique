@@ -14,7 +14,15 @@
     <span class="current">{{ 'Modifier' if is_edit else 'Nouveau dossier' }}</span>
   </div>
 
-  <h1 class="page-title">{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }}</h1>
+  <div class="page-header">
+    <h1 class="page-title" style="margin: 0;">{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }}</h1>
+    {% if is_edit %}
+    <div class="btn-group">
+      <button type="submit" form="form-dossier" class="btn btn-primary">Enregistrer les modifications</button>
+      <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="btn">Annuler</a>
+    </div>
+    {% endif %}
+  </div>
 
   {% if not is_edit %}
     <div class="card" style="max-width: 720px; margin-bottom: 20px; background: var(--bg); border-color: var(--border);">
@@ -32,6 +40,7 @@
 
   <div class="card" style="max-width: 720px;">
     <form
+      id="form-dossier"
       action="{{ url_for('dossier_update', id=dossier.id) if is_edit else url_for('dossier_create') }}"
       method="post"
       novalidate
