@@ -93,7 +93,7 @@
             <label for="statut">Statut</label>
             <select name="statut" id="statut">
               <option value="en_cours" {% if not dossier or dossier.statut == 'en_cours' %}selected{% endif %}>En cours</option>
-              <option value="suspendu" {% if dossier and dossier.statut == 'suspendu' %}selected{% endif %}>Suspendu</option>
+              <option value="transfere" {% if dossier and dossier.statut == 'transfere' %}selected{% endif %}>Transféré</option>
               <option value="cloture" {% if dossier and dossier.statut == 'cloture' %}selected{% endif %}>Clôturé</option>
             </select>
           </div>

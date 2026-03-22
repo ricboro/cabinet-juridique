@@ -41,7 +41,7 @@ class Dossier(Base):
     reference = Column(String(20), unique=True, nullable=False)
     intitule = Column(String(300), nullable=False)
     contexte = Column(Text, nullable=True)
-    statut = Column(Enum("en_cours", "cloture", "suspendu", name="dossier_statut"), default="en_cours")
+    statut = Column(Enum("en_cours", "cloture", "transfere", name="dossier_statut"), default="en_cours")
     date_ouverture = Column(Date, nullable=False)
     date_cloture = Column(Date, nullable=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)

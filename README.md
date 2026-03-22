@@ -134,7 +134,7 @@ Dossier <────────── Client
 ├── statut            └── date_creation
 │   (en_cours/
 │    cloture/
-│    suspendu)
+│    transfere)
 ├── date_ouverture
 ├── date_cloture
 ├── client_id (FK)
@@ -171,7 +171,7 @@ TypeActe
 
 **Statuts dossier** :
 - `en_cours` : dossier actif
-- `suspendu` : dossier mis en attente (peut reprendre)
+- `transfere` : dossier transféré à un autre confrère
 - `cloture` : dossier terminé — la clôture positionne automatiquement `date_cloture = today`
 
 ---
@@ -191,7 +191,7 @@ TypeActe
 
 - Référence auto-générée `AAAA-NNN`
 - Contexte libre (notes, références externes)
-- Statut : en cours / suspendu / clôturé
+- Statut : en cours / clôturé / transféré
 - Date d'ouverture (obligatoire), date de clôture (positionnée automatiquement a la clôture)
 - Échéances multiples (audience, conciliation, délai...) : libellé + date, ajout/suppression depuis la fiche
 - Filtres : statut, client, avocat

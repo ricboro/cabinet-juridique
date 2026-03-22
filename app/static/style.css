@@ -90,7 +90,7 @@
   background: #3d3830;
   color: #c8c0b4;
 }
-[data-theme="dark"] .badge-suspendu {
+[data-theme="dark"] .badge-transfere {
   background: #713f12;
   color: #fef08a;
 }
@@ -767,7 +767,7 @@ h4, h5, h6 {
   color: #374151;
 }
 
-.badge-suspendu {
+.badge-transfere {
   background: #fef9c3;
   color: #713f12;
 }
