@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Code applicatif
 COPY app/ ./app/
 
+# Alembic (migrations)
+COPY alembic/ ./alembic/
+COPY alembic.ini .
+
 # Répertoire de données (monté en volume en prod)
 RUN mkdir -p /data
 
