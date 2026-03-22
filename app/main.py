@@ -16,7 +16,7 @@ from app.auth import (
 )
 from app import crud
 
-APP_NAME = "Cabinet Juridique"
+APP_NAME = "Mon cabinet"
 
 # CSRF : non implémenté — l'outil est restreint au réseau Tailscale (accès interne uniquement).
 # A implémenter (ex: starlette-csrf) si l'outil est un jour exposé sur internet.
