@@ -50,7 +50,13 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title=APP_NAME, lifespan=lifespan)
+app = FastAPI(
+    title=APP_NAME,
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 # Gestion de la redirection auth
 @app.exception_handler(_RedirectException)
