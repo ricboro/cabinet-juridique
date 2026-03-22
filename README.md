@@ -413,7 +413,6 @@ fail2ban surveille les logs Nginx → ban automatique après 5 tentatives de log
 |---|---|
 | P1 | Changer le mot de passe admin (voir section 12) |
 | P2 | Let's Encrypt quand domaine décidé (remplacer le certificat auto-signé) |
-| P3 | Backup quotidien automatisé (voir section 12) |
 
 ### Flux d'authentification
 
@@ -649,16 +648,34 @@ pytest tests/test_routes_auth.py::test_login_success_redirects -v
 
 ### Backup
 
-La base de données est dans `./data/cabinet.db`. Backup quotidien recommandé avec rotation 7 jours :
+Le backup est automatisé via `backup.sh`. Il tourne chaque **samedi à 1h du matin** (cron utilisateur `ubuntu`).
 
+**Fonctionnement :**
+- Copie cohérente de `cabinet.db` depuis le conteneur (`docker exec` pour éviter les locks SQLite)
+- Compression gzip : fichier résultant `backups/cabinet_AAAAMMJJ_HHMM.db.gz`
+- Rotation automatique : les 8 derniers backups sont conservés (8 semaines)
+- Log dans `backups/backup.log`
+
+**Lancer un backup manuel :**
 ```bash
-# Ajouter dans crontab : crontab -e
-0 2 * * * cp /home/ubuntu/cabinet-juridique/data/cabinet.db \
-             /home/ubuntu/cabinet-juridique/data/cabinet.db.bak.$(date +\%Y\%m\%d) && \
-             find /home/ubuntu/cabinet-juridique/data/ -name "cabinet.db.bak.*" -mtime +7 -delete
+cd /home/ubuntu/cabinet-juridique
+bash backup.sh
 ```
 
-Note : les backups sont créés par root (container) donc appartiennent à svcadmincabinet. Accès via `sudo`.
+**Consulter les backups :**
+```bash
+ls -lh backups/
+cat backups/backup.log
+```
+
+**Restaurer un backup :**
+```bash
+docker compose down
+gunzip -c backups/cabinet_AAAAMMJJ_HHMM.db.gz | sudo tee /home/ubuntu/cabinet-juridique/data/cabinet.db > /dev/null
+sudo chown svcadmincabinet:svcadmincabinet /home/ubuntu/cabinet-juridique/data/cabinet.db
+sudo chmod 600 /home/ubuntu/cabinet-juridique/data/cabinet.db
+docker compose up -d
+```
 
 ### Changer le mot de passe d'un avocat
 
