@@ -43,25 +43,28 @@ async def dossiers_list(
     request: Request,
     page: int = 1,
     statut: Optional[str] = None,
-    client_id: Optional[int] = None,
-    avocat_id: Optional[int] = None,
+    client_id: Optional[str] = None,
+    avocat_id: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
+    client_id_int = int(client_id) if client_id and client_id.strip() else None
+    avocat_id_int = int(avocat_id) if avocat_id and avocat_id.strip() else None
+    statut_val = statut if statut and statut.strip() else None
     limit = 20
     skip = (page - 1) * limit
     dossiers, total = crud.get_dossiers(
-        db, skip=skip, limit=limit, statut=statut,
-        client_id=client_id, avocat_id=avocat_id,
+        db, skip=skip, limit=limit, statut=statut_val,
+        client_id=client_id_int, avocat_id=avocat_id_int,
     )
     pages = math.ceil(total / limit) if total > 0 else 1
     clients, _ = crud.get_clients(db, limit=1000)
     avocats = crud.get_avocats(db)
     filters = {
-        "statut": statut,
-        "client_id": client_id,
-        "avocat_id": avocat_id,
+        "statut": statut_val,
+        "client_id": client_id_int,
+        "avocat_id": avocat_id_int,
     }
     return templates.TemplateResponse(
         "pages/dossiers/list.html",
