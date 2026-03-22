@@ -44,14 +44,13 @@ class Dossier(Base):
     statut = Column(Enum("en_cours", "cloture", "suspendu", name="dossier_statut"), default="en_cours")
     date_ouverture = Column(Date, nullable=False)
     date_cloture = Column(Date, nullable=True)
-    date_echeance = Column(Date, nullable=True)
-    date_audience = Column(Date, nullable=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
     avocat_id = Column(Integer, ForeignKey("avocats.id"), nullable=False)
 
     client = relationship("Client", back_populates="dossiers")
     avocat = relationship("Avocat", back_populates="dossiers")
     acte_dossiers = relationship("ActeDossier", back_populates="dossier", cascade="all, delete-orphan")
+    echeances = relationship("Echeance", back_populates="dossier", cascade="all, delete-orphan", order_by="Echeance.date")
 
 
 class TypeActe(Base):
@@ -94,6 +93,17 @@ class Tag(Base):
     libelle = Column(String(100), unique=True, nullable=False)
 
     acte_tags = relationship("ActeTag", back_populates="tag", cascade="all, delete-orphan")
+
+
+class Echeance(Base):
+    __tablename__ = "echeances"
+
+    id = Column(Integer, primary_key=True)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id"), nullable=False)
+    libelle = Column(String(200), nullable=False)
+    date = Column(Date, nullable=False)
+
+    dossier = relationship("Dossier", back_populates="echeances")
 
 
 class ActeTag(Base):

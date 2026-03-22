@@ -3,8 +3,8 @@ import bcrypt
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 
-from app.models import Avocat, Client, Dossier, TypeActe, Acte, ActeDossier, Tag, ActeTag
-from app.schemas import ClientCreate, ClientUpdate, DossierCreate, DossierUpdate, ActeCreate, ActeUpdate
+from app.models import Avocat, Client, Dossier, Echeance, TypeActe, Acte, ActeDossier, Tag, ActeTag
+from app.schemas import ClientCreate, ClientUpdate, DossierCreate, DossierUpdate, EcheanceCreate, ActeCreate, ActeUpdate
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +180,27 @@ def delete_dossier(db: Session, dossier_id: int) -> bool:
         return False
     db.query(ActeDossier).filter(ActeDossier.dossier_id == dossier_id).delete()
     db.delete(dossier)
+    db.commit()
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Échéances
+# ---------------------------------------------------------------------------
+
+def create_echeance(db: Session, dossier_id: int, data: EcheanceCreate) -> Echeance:
+    echeance = Echeance(dossier_id=dossier_id, libelle=data.libelle, date=data.date)
+    db.add(echeance)
+    db.commit()
+    db.refresh(echeance)
+    return echeance
+
+
+def delete_echeance(db: Session, echeance_id: int) -> bool:
+    echeance = db.query(Echeance).filter(Echeance.id == echeance_id).first()
+    if not echeance:
+        return False
+    db.delete(echeance)
     db.commit()
     return True
 

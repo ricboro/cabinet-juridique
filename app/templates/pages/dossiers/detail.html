@@ -77,18 +77,6 @@
           {{ dossier.date_cloture.strftime('%d/%m/%Y') if dossier.date_cloture else '—' }}
         </div>
       </div>
-      <div class="info-item">
-        <div class="info-label">Échéance</div>
-        <div class="info-value">
-          {{ dossier.date_echeance.strftime('%d/%m/%Y') if dossier.date_echeance else '—' }}
-        </div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">Date d'audience</div>
-        <div class="info-value">
-          {{ dossier.date_audience.strftime('%d/%m/%Y') if dossier.date_audience else '—' }}
-        </div>
-      </div>
     </div>
 
     {% if dossier.contexte %}
@@ -97,6 +85,14 @@
         <div class="contexte-block">{{ dossier.contexte }}</div>
       </div>
     {% endif %}
+
+    {# ── Échéances ── #}
+    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+      <div class="info-label" style="margin-bottom: 12px;">Échéances</div>
+      <div id="echeances-section">
+        {% include "partials/echeances.html" %}
+      </div>
+    </div>
   </div>
 
   {# ── Actes ── #}

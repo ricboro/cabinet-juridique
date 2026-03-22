@@ -1,0 +1,43 @@
+{% if dossier.echeances %}
+  <ul class="echeances-list">
+    {% for e in dossier.echeances %}
+      <li class="echeance-item">
+        <div class="echeance-info">
+          <span class="echeance-libelle">{{ e.libelle }}</span>
+          <span class="echeance-date">{{ e.date.strftime('%d/%m/%Y') }}</span>
+        </div>
+        <form
+          hx-post="{{ url_for('echeance_delete', id=dossier.id, eid=e.id) }}"
+          hx-target="#echeances-section"
+          hx-swap="innerHTML"
+          style="display:inline;"
+        >
+          <button type="submit" class="btn-icon-delete" title="Supprimer" aria-label="Supprimer cette échéance">×</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted text-small" style="margin: 0;">Aucune échéance pour l'instant.</p>
+{% endif %}
+
+{# Formulaire d'ajout #}
+{% if dossier.statut != 'cloture' %}
+<form
+  hx-post="{{ url_for('echeance_create', id=dossier.id) }}"
+  hx-target="#echeances-section"
+  hx-swap="innerHTML"
+  hx-on::after-request="this.reset()"
+  style="display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap;"
+>
+  <div class="form-group" style="flex: 2; min-width: 140px; margin-bottom: 0;">
+    <label for="echeance-libelle" class="text-small text-muted">Libellé</label>
+    <input type="text" id="echeance-libelle" name="libelle" placeholder="Ex. : Audience, Conciliation…" required>
+  </div>
+  <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
+    <label for="echeance-date" class="text-small text-muted">Date</label>
+    <input type="date" id="echeance-date" name="date" required>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom: 1px;">+ Ajouter</button>
+</form>
+{% endif %}

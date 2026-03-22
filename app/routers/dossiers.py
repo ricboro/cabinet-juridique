@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user, set_flash
 from app import crud
-from app.schemas import DossierCreate, DossierUpdate
+from app.schemas import DossierCreate, DossierUpdate, EcheanceCreate
 from app.utils import parse_date
 
 router = APIRouter()
@@ -21,8 +21,7 @@ def _parse_dossier_form(form) -> dict:
         "contexte": (form.get("contexte") or "").strip() or None,
         "statut": (form.get("statut") or "en_cours").strip() or "en_cours",
         "date_ouverture": parse_date(form.get("date_ouverture", "")),
-        "date_echeance": parse_date(form.get("date_echeance", "")),
-        "date_audience": parse_date(form.get("date_audience", "")),
+        "date_cloture": parse_date(form.get("date_cloture", "")),
         "client_id": int(form.get("client_id", 0)) if form.get("client_id") else None,
         "avocat_id": int(form.get("avocat_id", 0)) if form.get("avocat_id") else None,
     }
@@ -228,6 +227,48 @@ async def dossier_close(
     )
     set_flash(response, "Dossier clôturé", "success")
     return response
+
+
+@router.post("/dossiers/{id}/echeances", name="echeance_create")
+async def echeance_create(
+    id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    from app.main import templates, make_context
+    dossier = crud.get_dossier(db, id)
+    if not dossier:
+        return RedirectResponse(url=request.url_for("dossiers_list"), status_code=303)
+    form = await request.form()
+    libelle = (form.get("libelle") or "").strip()
+    date = parse_date(form.get("date", ""))
+    if libelle and date:
+        crud.create_echeance(db, id, EcheanceCreate(libelle=libelle, date=date))
+    return templates.TemplateResponse(
+        "partials/echeances.html",
+        make_context(request, current_user, dossier=dossier),
+    )
+
+
+@router.post("/dossiers/{id}/echeances/{eid}/delete", name="echeance_delete")
+async def echeance_delete(
+    id: int,
+    eid: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    from app.main import templates, make_context
+    dossier = crud.get_dossier(db, id)
+    if not dossier:
+        return RedirectResponse(url=request.url_for("dossiers_list"), status_code=303)
+    crud.delete_echeance(db, eid)
+    db.refresh(dossier)
+    return templates.TemplateResponse(
+        "partials/echeances.html",
+        make_context(request, current_user, dossier=dossier),
+    )
 
 
 @router.post("/dossiers/{id}/delete", name="dossier_delete")

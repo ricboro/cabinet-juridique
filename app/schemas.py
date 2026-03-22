@@ -81,8 +81,6 @@ class DossierBase(BaseModel):
     statut: Optional[str] = "en_cours"
     date_ouverture: datetime.date
     date_cloture: Optional[datetime.date] = None
-    date_echeance: Optional[datetime.date] = None
-    date_audience: Optional[datetime.date] = None
     client_id: int
 
 
@@ -96,9 +94,12 @@ class DossierUpdate(BaseModel):
     statut: Optional[str] = None
     date_ouverture: Optional[datetime.date] = None
     date_cloture: Optional[datetime.date] = None
-    date_echeance: Optional[datetime.date] = None
-    date_audience: Optional[datetime.date] = None
     client_id: Optional[int] = None
+
+
+class EcheanceCreate(BaseModel):
+    libelle: str
+    date: datetime.date
 
 
 class AvocatSimple(BaseModel):
