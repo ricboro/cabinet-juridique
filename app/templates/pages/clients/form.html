@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="page-content">
+  <div style="max-width: 720px; margin: 0 auto;">
   <div class="status-bar">
     <a href="{{ url_for('clients_list') }}">Clients</a>
     {% if is_edit %}
@@ -18,7 +19,7 @@
 
   <h1 class="page-title">{{ 'Modifier le client' if is_edit else 'Nouveau client' }}</h1>
 
-  <div class="card" style="max-width: 720px;">
+  <div class="card">
     <form
       action="{{ url_for('client_update', id=client.id) if is_edit else url_for('client_create') }}"
       method="post"
@@ -179,6 +180,7 @@
         </a>
       </div>
     </form>
+  </div>
   </div>
 </div>
 {% endblock %}

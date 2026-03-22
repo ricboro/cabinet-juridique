@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="page-content">
+  <div style="max-width: 720px; margin: 0 auto;">
   <div class="status-bar">
     <a href="{{ url_for('dossiers_list') }}">Dossiers</a>
     {% if is_edit %}
@@ -17,20 +18,20 @@
   <h1 class="page-title">{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }}</h1>
 
   {% if not is_edit %}
-    <div class="card" style="max-width: 720px; margin: 0 auto 20px; background: var(--bg); border-color: var(--border);">
+    <div class="card" style="margin-bottom: 20px; background: var(--bg); border-color: var(--border);">
       <p class="text-muted text-small">
         La référence du dossier sera générée automatiquement lors de la création (format : DOS-AAAA-NNNN).
       </p>
     </div>
   {% else %}
-    <div class="card" style="max-width: 720px; margin: 0 auto 20px; background: var(--bg); border-color: var(--border);">
+    <div class="card" style="margin-bottom: 20px; background: var(--bg); border-color: var(--border);">
       <p class="text-muted text-small">
         Référence du dossier : <strong style="font-family: 'Playfair Display SC', serif; font-size: 0.9rem;">{{ dossier.reference }}</strong>
       </p>
     </div>
   {% endif %}
 
-  <div class="card" style="max-width: 720px; margin: 0 auto;">
+  <div class="card">
 
     {# ── Formulaire principal (sans les boutons) ── #}
     <form
@@ -195,6 +196,7 @@
       </a>
     </div>
 
+  </div>
   </div>
 </div>
 {% endblock %}
