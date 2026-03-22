@@ -19,7 +19,7 @@
           placeholder="Rechercher dans les dossiers, actes, clients…"
           autocomplete="off"
           hx-get="{{ url_for('search_htmx') }}"
-          hx-trigger="keyup changed delay:300ms[value.length>=3]"
+          hx-trigger="keyup[value.length>=3] delay:300ms"
           hx-target="#search-results-container"
           hx-swap="innerHTML"
           hx-include="#search-form"
