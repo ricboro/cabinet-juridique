@@ -6,9 +6,21 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user
 from app import crud
-from app.models import Avocat
 
 router = APIRouter()
+
+
+def _parse_search_params(
+    q, type_acte_id, tag, client_id, avocat_id, statut
+):
+    """Normalise les paramètres de recherche reçus en chaînes depuis le formulaire."""
+    q            = (q or "").strip()
+    type_acte_id = int(type_acte_id) if type_acte_id and type_acte_id not in ("", "None") else None
+    client_id    = int(client_id)    if client_id    and client_id    not in ("", "None") else None
+    avocat_id    = int(avocat_id)    if avocat_id    and avocat_id    not in ("", "None") else None
+    tag          = tag.strip()       if tag          and tag          not in ("", "None") else None
+    statut       = statut            if statut       and statut       not in ("", "None") else None
+    return q, type_acte_id, tag, client_id, avocat_id, statut
 
 
 @router.get("/search", name="search_page")
@@ -24,12 +36,9 @@ async def search_page(
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
-    q = q or ""
-    type_acte_id = int(type_acte_id) if type_acte_id else None
-    client_id    = int(client_id)    if client_id    else None
-    avocat_id    = int(avocat_id)    if avocat_id    else None
-    tag          = tag.strip()       if tag          else None
-    statut       = statut            if statut       else None
+    q, type_acte_id, tag, client_id, avocat_id, statut = _parse_search_params(
+        q, type_acte_id, tag, client_id, avocat_id, statut
+    )
     has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
     if len(q) >= 3 or has_filters:
         results = crud.search(
@@ -72,12 +81,9 @@ async def search_htmx(
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
-    q = q or ""
-    type_acte_id = int(type_acte_id) if type_acte_id else None
-    client_id    = int(client_id)    if client_id    else None
-    avocat_id    = int(avocat_id)    if avocat_id    else None
-    tag          = tag.strip()       if tag          else None
-    statut       = statut            if statut       else None
+    q, type_acte_id, tag, client_id, avocat_id, statut = _parse_search_params(
+        q, type_acte_id, tag, client_id, avocat_id, statut
+    )
     has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
     if len(q) >= 3 or has_filters:
         results = crud.search(

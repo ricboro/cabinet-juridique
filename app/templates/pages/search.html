@@ -64,7 +64,7 @@
             type="text"
             id="tag-filter"
             name="tag"
-            value="{{ filters.tag | default('') }}"
+            value="{{ filters.tag or '' }}"
             placeholder="Filtrer par tag…"
             hx-get="{{ url_for('search_htmx') }}"
             hx-trigger="keyup delay:300ms"
