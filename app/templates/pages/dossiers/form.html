@@ -102,7 +102,7 @@
             <select name="avocat_id" id="avocat_id">
               <option value="">- Sélectionner -</option>
               {% for a in avocats %}
-                <option value="{{ a.id }}" {% if dossier and dossier.avocat_id == a.id %}selected{% endif %}>
+                <option value="{{ a.id }}" {% if (dossier and dossier.avocat_id == a.id) or (not dossier and current_user and current_user.id == a.id) %}selected{% endif %}>
                   {{ a.prenom }} {{ a.nom }}
                 </option>
               {% endfor %}
