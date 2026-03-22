@@ -21,7 +21,7 @@ _flash_serializer = URLSafeSerializer(SECRET_KEY, salt="flash")
 
 def create_session(response, avocat_id: int) -> None:
     token = _session_serializer.dumps({"user_id": avocat_id})
-    response.set_cookie("session", token, httponly=True, samesite="lax")
+    response.set_cookie("session", token, httponly=True, samesite="lax", max_age=28800)
 
 
 def get_session_user_id(request: Request) -> Optional[int]:

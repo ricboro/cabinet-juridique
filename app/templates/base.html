@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Mon cabinet{% endblock %}</title>
   <link rel="icon" type="image/png" href="https://margoboisson-avocat.fr/wp-content/uploads/elementor/thumbs/MBO-Logo-site-rikpv4r0vtt6pr4us51dvcxksvimxx5fwj6fnloodw.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
   {% block head %}{% endblock %}
   {# Anti-flash : applique le thème avant le rendu #}
@@ -107,7 +104,7 @@
   </main>
 
   {# ── Scripts ── #}
-  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5ViYgSibmK" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', path='js/htmx.min.js') }}"></script>
 
   {# Toggle thème clair/sombre #}
   <script>

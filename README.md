@@ -3,7 +3,8 @@
 Outil web auto-hébergé de gestion de dossiers juridiques pour avocate solo.
 L'outil est un **référentiel de liens** vers des documents stockés sur OneDrive — il ne stocke aucun fichier.
 
-Accessible uniquement via Tailscale (`http://100.81.134.30:8092`) pour le MVP.
+Accès public sécurisé : `https://92.222.243.19:9444` (certificat auto-signé — domaine à venir)
+Accès Tailscale direct : `http://100.81.134.30:8092`
 
 ---
 
@@ -16,9 +17,9 @@ Accessible uniquement via Tailscale (`http://100.81.134.30:8092`) pour le MVP.
 5. [Flux utilisateur](#5-flux-utilisateur)
 6. [Structure du projet](#6-structure-du-projet)
 7. [Stack technique](#7-stack-technique)
-8. [Authentification et securite](#8-authentification-et-securite)
+8. [Securite](#8-securite)
 9. [Installation et lancement](#9-installation-et-lancement)
-10. [Developpement local](#10-developpement-local)
+10. [Développement local](#10-développement-local)
 11. [Tests](#11-tests)
 12. [Operations et maintenance](#12-operations-et-maintenance)
 13. [Roadmap](#13-roadmap)
@@ -42,12 +43,21 @@ L'outil ne remplace pas OneDrive : il stocke uniquement les métadonnées et les
 ### Vue d'ensemble
 
 ```
-Navigateur (PuTTY / Chrome via Tailscale)
+Navigateur (Internet)
     |
-    | HTTP (Tailscale uniquement — 100.81.134.30:8092)
+    | HTTPS TLS 1.3 (port 9444)
     v
 +--------------------------------------------------+
-|  FastAPI (Python 3.12)                           |
+|  Nginx (Docker) — Reverse proxy                  |
+|  - Terminaison TLS (certificat auto-signé)       |
+|  - Rate limiting (30 req/min / 10 req/min login) |
+|  - Headers sécurité (HSTS, X-Frame, CSP...)      |
++--------------------------------------------------+
+    |
+    | HTTP interne (Docker network)
+    v
++--------------------------------------------------+
+|  FastAPI (Python 3.12) — port 8092               |
 |  - Routes HTML (Jinja2 templates)                |
 |  - Routes HTMX (fragments HTML partiels)         |
 |  - Session auth (itsdangerous cookie)            |
@@ -57,6 +67,7 @@ Navigateur (PuTTY / Chrome via Tailscale)
     v
 +--------------------------------------------------+
 |  SQLite  (/data/cabinet.db)                      |
+|  Propriétaire : svcadmincabinet (mode 600)       |
 |  Migrations gérées par Alembic                   |
 +--------------------------------------------------+
 ```
@@ -64,20 +75,21 @@ Navigateur (PuTTY / Chrome via Tailscale)
 ### Flux d'une requete classique
 
 ```
-1. Navigateur envoie GET /dossiers (avec cookie session)
-2. FastAPI vérifie la session via get_current_user()
+1. Navigateur envoie GET /dossiers via HTTPS (nginx)
+2. Nginx vérifie le rate limit, forward à FastAPI avec X-Forwarded-For
+3. FastAPI vérifie la session via get_current_user()
    - Cookie absent ou invalide → redirect /login
    - Cookie valide → Avocat chargé depuis DB
-3. Router dossiers.py appelle crud.get_dossiers()
-4. CRUD retourne les données via SQLAlchemy
-5. Template pages/dossiers/list.html rendu avec Jinja2
-6. HTML complet envoyé au navigateur
+4. Router dossiers.py appelle crud.get_dossiers()
+5. CRUD retourne les données via SQLAlchemy
+6. Template pages/dossiers/list.html rendu avec Jinja2
+7. HTML complet retourné via nginx au navigateur
 ```
 
 ### Flux HTMX (recherche live)
 
 ```
-1. Utilisateur tape dans la barre de recherche (≥ 3 caractères)
+1. Utilisateur tape dans la barre de recherche (>= 3 caractères)
 2. HTMX envoie GET /search/htmx?q=... (après 300ms debounce)
 3. FastAPI retourne uniquement le fragment partials/search_results.html
 4. HTMX remplace le contenu du div #search-live-results en place
@@ -113,7 +125,7 @@ Avocat
       |
       | 1..N
       v
-Dossier ←────────── Client
+Dossier <────────── Client
 ├── id (PK)          ├── id (PK)
 ├── reference         ├── type (personne/societe)
 │   (AAAA-NNN)       ├── nom, prenom
@@ -170,6 +182,7 @@ TypeActe
 
 - Fiche personne physique (nom, prénom, email, téléphone, adresse)
 - Fiche société (raison sociale, SIRET, email, téléphone, adresse)
+- Validation email et téléphone (format français 06 00 00 00 00)
 - Liste paginée (20/page) triée par nom
 - Accès direct aux dossiers d'un client depuis sa fiche
 - Suppression bloquée si dossiers existants
@@ -270,7 +283,10 @@ cabinet-juridique/
 │   │   ├── type_actes.py    # GET/POST /type-actes, /type-actes/{id}/delete
 │   │   └── search.py        # GET /search (page), GET /search/htmx (fragment)
 │   ├── static/
-│   │   └── style.css        # CSS custom (pas de framework) — charte legal-anonymizer
+│   │   ├── style.css        # CSS custom (pas de framework) — charte legal-anonymizer
+│   │   ├── fonts/           # Polices auto-hébergées (Playfair Display SC + Display)
+│   │   └── js/
+│   │       └── htmx.min.js  # HTMX auto-hébergé (pas de CDN externe)
 │   └── templates/
 │       ├── base.html        # Layout commun : header, nav, barre recherche HTMX, logout
 │       ├── login.html       # Page connexion (sans layout commun)
@@ -292,9 +308,17 @@ cabinet-juridique/
 │       └── partials/                    # Fragments HTMX (retournés sans layout)
 │           ├── actes_list.html          # Liste des actes d'un dossier
 │           ├── search_results.html      # Résultats groupés Dossiers/Actes
+│           ├── guide_modal.html         # Modal guide d'utilisation (bouton ?)
 │           ├── client_row.html          # Ligne de tableau client
 │           ├── dossier_row.html         # Ligne de tableau dossier
 │           └── acte_row.html            # Ligne/carte acte
+├── nginx/
+│   ├── nginx.conf           # Reverse proxy HTTPS, rate limiting, headers sécurité
+│   └── certs/               # Certificat auto-signé (gitignored — à générer au setup)
+│       ├── server.crt
+│       └── server.key
+├── logs/
+│   └── nginx/               # Logs nginx (access.log, error.log) — montés depuis Docker
 ├── tests/
 │   ├── conftest.py          # Fixtures pytest : db (SQLite mémoire), avocat, client_personne,
 │   │                        #   client_societe, type_acte, dossier, set_auth_cookie()
@@ -316,13 +340,13 @@ cabinet-juridique/
 ├── data/
 │   └── .gitkeep             # Répertoire versionné mais cabinet.db gitignorée
 ├── Dockerfile               # python:3.12-slim, copie app/ + alembic/, EXPOSE 8092
-├── docker-compose.yml       # Service app, bind 100.81.134.30:8092, volume ./data:/data
+├── docker-compose.yml       # Services : nginx (port 9444 public) + app (Tailscale only)
 ├── alembic.ini              # Config Alembic (sqlalchemy.url depuis DATABASE_URL)
 ├── requirements.txt         # Dépendances Python
 ├── pytest.ini               # Config pytest
 ├── conftest.py              # (racine) Set TESTING=1 pour désactiver le lifespan en test
 ├── .env.example             # Template variables d'environnement (a copier en .env)
-└── .gitignore               # Exclut .env, data/*.db, __pycache__, .venv
+└── .gitignore               # Exclut .env, data/*.db, nginx/certs/, logs/, __pycache__
 ```
 
 ---
@@ -337,19 +361,59 @@ cabinet-juridique/
 | Validation | Pydantic | v2 | Intégré FastAPI, performant |
 | Base de données | SQLite | 3.x | Suffisant pour usage solo, backup trivial |
 | Templates | Jinja2 | 3.1 | Natif FastAPI, pas de JS requis |
-| Interactivité | HTMX | 1.9 | Requêtes partielles sans écrire de JS |
+| Interactivité | HTMX | 1.9 | Requêtes partielles sans écrire de JS (auto-hébergé) |
 | Auth | itsdangerous | 2.2 | Cookie signé, simple, sans JWT |
 | Hash mots de passe | bcrypt | 4.2 | Standard, résistant aux attaques |
 | Serveur ASGI | Uvicorn | 0.32 | Performant, intégré FastAPI |
+| Reverse proxy | Nginx (Alpine) | 1.29 | TLS, rate limiting, headers sécurité |
 | Conteneurisation | Docker + Compose | - | Déploiement reproductible |
 
-**Pas de framework CSS** : CSS custom (450 lignes) avec variables CSS, même charte que `legal-anonymizer`.
-
-**Pas de JavaScript custom** : HTMX gère toutes les interactions dynamiques (recherche live, autocomplétion tags). Le seul JS inline est le toggle personne/société dans le formulaire client et la gestion des chips de tags.
+**Pas de framework CSS** : CSS custom avec variables CSS, même charte que `legal-anonymizer`.
+**Pas de CDN externe** : HTMX et polices (Playfair Display SC + Display) sont auto-hébergés — conformité RGPD, pas de fuite d'IP vers Google Fonts.
 
 ---
 
-## 8. Authentification et securite
+## 8. Securite
+
+### Architecture de sécurité
+
+```
+Internet → Nginx (TLS 1.3, port 9444) → FastAPI (HTTP interne) → SQLite (chmod 600)
+                                                                    propriétaire : svcadmincabinet
+fail2ban surveille les logs Nginx → ban automatique après 5 tentatives de login échouées
+```
+
+### Mesures en place
+
+| Couche | Mesure | Détail |
+|---|---|---|
+| Réseau | HTTPS TLS 1.3 | Certificat auto-signé (Let's Encrypt quand domaine disponible) |
+| Réseau | Port 8092 non exposé | App FastAPI liée à Tailscale uniquement (`100.81.134.30`) |
+| Réseau | Port 80 fermé | Aucun accès HTTP non chiffré depuis internet |
+| Nginx | Rate limiting | 30 req/min global, 10 req/min sur `/login` |
+| Nginx | Headers sécurité | HSTS, X-Frame-Options DENY, X-Content-Type nosniff, Referrer-Policy, X-XSS-Protection |
+| Nginx | Logs structurés | Accès au format standard, lus par fail2ban |
+| Auth | bcrypt | Mots de passe hashés, non réversibles |
+| Auth | Cookie HttpOnly | Inaccessible au JavaScript |
+| Auth | Cookie SameSite=Lax | Protection CSRF |
+| Auth | Session max_age=8h | Expiration automatique des sessions (28 800 secondes) |
+| Auth | HTTP 401 sur échec login | Permettre la détection fail2ban |
+| fail2ban | Jail cabinet-juridique-auth | Ban 1h après 5 tentatives échouées en 5 min, progressif jusqu'à 1 semaine |
+| Système | Utilisateur svcadmincabinet | Container app tourne sous uid 997, sans shell, sans sudo |
+| Système | DB chmod 600 | Fichier cabinet.db lisible uniquement par svcadmincabinet |
+| Code | Aucun CDN externe | HTMX + polices auto-hébergés (pas de fuite d'IP visiteurs) |
+| Code | Validation email + téléphone | Format vérifié côté serveur |
+| Code | Validation URL OneDrive | urlparse vérifie scheme http/https et netloc |
+| Code | ORM SQLAlchemy | Aucune requête SQL brute, injection SQL impossible |
+| Secrets | .env gitignored | Clé secrète et credentials hors du repo |
+
+### Ce qui reste à faire
+
+| Priorité | Action |
+|---|---|
+| P1 | Changer le mot de passe admin (voir section 12) |
+| P2 | Let's Encrypt quand domaine décidé (remplacer le certificat auto-signé) |
+| P3 | Backup quotidien automatisé (voir section 12) |
 
 ### Flux d'authentification
 
@@ -365,34 +429,16 @@ crud.verify_password() → bcrypt.checkpw()
     v (si ok)
 auth.create_session(response, avocat.id)
     → URLSafeSerializer(SECRET_KEY).dumps({"user_id": id})
-    → Set-Cookie: session=<token>; HttpOnly; SameSite=Lax
+    → Set-Cookie: session=<token>; HttpOnly; SameSite=Lax; Max-Age=28800
     |
     v
 Redirect → /
+
+    v (si echec)
+HTTP 401 → page login avec message d'erreur
+→ fail2ban incrémente le compteur pour cette IP
+→ ban si >= 5 tentatives en 5 min
 ```
-
-### Protection des routes
-
-Chaque router utilise `Depends(get_current_user)`. Si le cookie est absent ou invalide :
-- `_RedirectException("/login")` est levée
-- L'exception handler global retourne `RedirectResponse("/login", 303)`
-
-### Flash messages
-
-Les messages de confirmation/erreur sont stockés dans un cookie `flash` (signé, max_age=60s) et effacés a la première lecture. Permet d'afficher un message après une redirection sans état serveur.
-
-### Points de sécurité
-
-| Point | Statut | Détail |
-|---|---|---|
-| Cookie HttpOnly | OK | Inaccessible au JS |
-| Cookie SameSite=Lax | OK | Protection CSRF partielle |
-| Mot de passe bcrypt | OK | Hash non réversible |
-| SECRET_KEY obligatoire | OK | Warning au démarrage si absente ou valeur par défaut |
-| Accès réseau | OK | Bind Tailscale uniquement (100.81.134.30) |
-| Pas de CSRF token | Note | Acceptable en Tailscale-only. A implémenter si exposition publique |
-| Validation URL OneDrive | OK | urlparse vérifie scheme http/https et netloc |
-| Injection SQL | OK | SQLAlchemy ORM, aucune requête SQL brute |
 
 ---
 
@@ -401,37 +447,59 @@ Les messages de confirmation/erreur sont stockés dans un cookie `flash` (signé
 ### Prérequis
 
 - Docker + Docker Compose installés
-- Accès au VPS via Tailscale (ou réseau local pour usage local)
+- Utilisateur système `svcadmincabinet` créé (voir ci-dessous)
 
-### Démarrage (Docker)
+### Setup initial (une seule fois)
 
 ```bash
-# 1. Cloner le repo
+# 1. Créer l'utilisateur système dédié
+sudo useradd -r -s /usr/sbin/nologin -d /nonexistent \
+  -c "Cabinet Juridique service account" svcadmincabinet
+
+# 2. Cloner le repo
 git clone https://github.com/ricboro/cabinet-juridique.git
 cd cabinet-juridique
 
-# 2. Créer le fichier .env depuis le template
+# 3. Créer le .env depuis le template
 cp .env.example .env
-
-# 3. Editer .env — obligatoire avant le premier démarrage
-#    - SECRET_KEY : générer avec python3 -c "import secrets; print(secrets.token_hex(32))"
-#    - ADMIN_EMAIL : email du premier compte avocat
-#    - ADMIN_PASSWORD : mot de passe du premier compte avocat
+# Editer .env : SECRET_KEY, ADMIN_EMAIL, ADMIN_PASSWORD (voir variables ci-dessous)
 nano .env
 
-# 4. Lancer
+# 4. Générer le certificat auto-signé (10 ans — à remplacer par Let's Encrypt plus tard)
+mkdir -p nginx/certs
+openssl req -x509 -newkey rsa:4096 \
+  -keyout nginx/certs/server.key \
+  -out nginx/certs/server.crt \
+  -days 3650 -nodes \
+  -subj "/C=FR/ST=France/L=Paris/O=Cabinet Juridique/CN=cabinet.local"
+
+# 5. Créer les répertoires de logs
+mkdir -p logs/nginx
+
+# 6. Corriger les permissions de la DB (après premier démarrage ou sur DB existante)
+UID_SVC=$(id -u svcadmincabinet)
+GID_SVC=$(id -g svcadmincabinet)
+# Mettre à jour docker-compose.yml si les UID/GID diffèrent de 997:986
+sudo chown svcadmincabinet:svcadmincabinet data/
+sudo chmod 750 data/
+
+# 7. Ouvrir le port 9444 dans iptables
+sudo iptables -I INPUT -p tcp --dport 9444 -j ACCEPT
+sudo netfilter-persistent save
+
+# 8. Configurer fail2ban
+sudo cp /path/to/fail2ban-configs/cabinet-juridique-auth.conf /etc/fail2ban/filter.d/
+sudo cp /path/to/fail2ban-configs/cabinet-juridique.conf /etc/fail2ban/jail.d/
+sudo fail2ban-client reload
+
+# 9. Lancer
 docker compose up -d --build
+```
 
-# 5. Vérifier le démarrage
-docker compose logs -f app
-# Attendu :
-#   INFO  [alembic] Running upgrade  -> 0001, initial schema
-#   INFO  Application startup complete.
-#   INFO  Uvicorn running on http://0.0.0.0:8092
+### Démarrage standard (après setup)
 
-# 6. Accéder
-# Via Tailscale VPS : http://100.81.134.30:8092
-# En local          : http://localhost:8092
+```bash
+docker compose up -d --build
 ```
 
 ### Variables d'environnement (`.env`)
@@ -443,7 +511,7 @@ SECRET_KEY=remplacer-par-une-vraie-cle-secrete
 
 # Compte avocat créé au premier démarrage (si table avocats vide)
 ADMIN_EMAIL=avocat@cabinet.fr
-ADMIN_PASSWORD=remplacer-par-un-vrai-mot-de-passe
+ADMIN_PASSWORD=remplacer-par-un-mot-de-passe-robuste
 
 # Base de données SQLite (ne pas modifier sauf hors Docker)
 DATABASE_URL=sqlite:////data/cabinet.db
@@ -457,8 +525,6 @@ PORT=8092
 Au démarrage, le container exécute automatiquement :
 1. `alembic upgrade head` : crée toutes les tables (ou applique les migrations manquantes)
 2. `seed.py` : peuple les 12 types d'actes par défaut + crée le compte avocat depuis `.env`
-
-Si `ADMIN_EMAIL` ou `ADMIN_PASSWORD` sont absents du `.env`, un warning est affiché dans les logs et aucun compte n'est créé — l'app démarre mais la connexion est impossible.
 
 ---
 
@@ -509,6 +575,7 @@ docker compose ps
 
 # Logs en direct
 docker compose logs -f app
+docker compose logs -f nginx
 
 # Redémarrer sans rebuild
 docker compose restart app
@@ -518,9 +585,6 @@ docker compose up -d --build
 
 # Arrêt complet
 docker compose down
-
-# Ouvrir un shell dans le container
-docker compose exec app bash
 
 # Inspecter la DB SQLite directement
 docker compose exec app python3 -c "
@@ -594,6 +658,8 @@ La base de données est dans `./data/cabinet.db`. Backup quotidien recommandé a
              find /home/ubuntu/cabinet-juridique/data/ -name "cabinet.db.bak.*" -mtime +7 -delete
 ```
 
+Note : les backups sont créés par root (container) donc appartiennent à svcadmincabinet. Accès via `sudo`.
+
 ### Changer le mot de passe d'un avocat
 
 ```bash
@@ -627,6 +693,19 @@ print(f'Avocat créé : {avocat.prenom} {avocat.nom}')
 "
 ```
 
+### Gérer fail2ban
+
+```bash
+# Statut du jail
+sudo fail2ban-client status cabinet-juridique-auth
+
+# Débannir une IP (ex: si verrouillé par erreur)
+sudo fail2ban-client set cabinet-juridique-auth unbanip <ip>
+
+# Voir les logs
+sudo journalctl -u fail2ban -f
+```
+
 ### Mettre a jour l'application
 
 ```bash
@@ -642,12 +721,32 @@ docker compose up -d --build
 # Statut Docker
 docker compose ps
 
-# Healthcheck interne (GET /login doit retourner 200)
-docker compose inspect cabinet-juridique-app-1 | grep -A5 Health
-
-# Test direct
-curl -s -o /dev/null -w "%{http_code}" http://100.81.134.30:8092/login
+# Test HTTPS public
+curl -sk https://92.222.243.19:9444/login -o /dev/null -w "%{http_code}"
 # Attendu : 200
+
+# Test accès Tailscale direct
+curl -s http://100.81.134.30:8092/login -o /dev/null -w "%{http_code}"
+# Attendu : 200
+```
+
+### Remplacer le certificat auto-signé (Let's Encrypt)
+
+Quand un nom de domaine est disponible :
+
+```bash
+# Arrêter nginx temporairement
+docker compose stop nginx
+
+# Obtenir le certificat (certbot doit être installé sur le host)
+sudo certbot certonly --standalone -d votre-domaine.fr
+
+# Copier dans nginx/certs/
+sudo cp /etc/letsencrypt/live/votre-domaine.fr/fullchain.pem nginx/certs/server.crt
+sudo cp /etc/letsencrypt/live/votre-domaine.fr/privkey.pem nginx/certs/server.key
+
+# Redémarrer
+docker compose start nginx
 ```
 
 ---
@@ -660,15 +759,28 @@ curl -s -o /dev/null -w "%{http_code}" http://100.81.134.30:8092/login
 - [x] Couche CRUD + tests unitaires (32 tests)
 - [x] Couche UI / Templates (Jinja2 + HTMX)
 - [x] Routes FastAPI (auth, clients, dossiers, actes, recherche)
-- [x] Tests routes (40 tests)
+- [x] Tests routes (70 tests)
 - [x] Infrastructure Docker + README
 - [x] Audit qualité + corrections (102 tests, couverture 90%)
 
+### Sécurité (livré)
+
+- [x] Nginx reverse proxy + HTTPS auto-signé
+- [x] TLS 1.2/1.3, headers de sécurité (HSTS, X-Frame, CSP...)
+- [x] Rate limiting Nginx (global + login)
+- [x] fail2ban sur les tentatives de login échouées
+- [x] Utilisateur système dédié `svcadmincabinet`
+- [x] DB chmod 600, propriétaire svcadmincabinet
+- [x] Session avec expiration 8h
+- [x] Auto-hébergement HTMX + polices (RGPD, pas de CDN tiers)
+- [x] Validation email et téléphone côté serveur
+
 ### Après MVP
 
-- [ ] Nginx + HTTPS + Let's Encrypt (quand domaine décidé)
+- [ ] Let's Encrypt quand domaine décidé
+- [ ] Changer le mot de passe admin initial (voir section 12)
+- [ ] Backup automatisé quotidien (crontab)
 - [ ] Export CSV (liste clients, liste dossiers par période)
 - [ ] Suivi d'événements sur un dossier (audiences, relances, notes de suivi horodatées)
 - [ ] Statistiques avancées sur le dashboard (dossiers par mois, types d'actes les plus produits)
-- [ ] Migration PostgreSQL si montée en charge — avec SQLAlchemy ORM, c'est uniquement un changement de `DATABASE_URL` + `alembic upgrade head`
-- [ ] Application mobile (l'API FastAPI est déja en place, il suffit d'ajouter des routes JSON)
+- [ ] Migration PostgreSQL si montée en charge
