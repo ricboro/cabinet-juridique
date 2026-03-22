@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }} — Mon cabinet{% endblock %}
+{% block title %}{{ 'Modifier l\'acte' if is_edit else 'Nouvel acte' }} - Mon cabinet{% endblock %}
 
 {% block content %}
 <div class="page-content">
@@ -99,7 +99,7 @@
                 value="{{ d.id }}"
                 {% if (acte and acte.dossier_id == d.id) or (preselect_dossier_id and preselect_dossier_id | int == d.id) %}selected{% endif %}
               >
-                {{ d.reference }} — {{ d.intitule }}
+                {{ d.reference }} - {{ d.intitule }}
                 {% if d.statut == 'en_cours' %}(En cours){% elif d.statut == 'cloture' %}(Clôturé){% endif %}
               </option>
             {% endfor %}

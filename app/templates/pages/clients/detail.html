@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ client.prenom ~ ' ' ~ client.nom if client.type == 'personne' else client.raison_sociale }} — Mon cabinet{% endblock %}
+{% block title %}{{ client.prenom ~ ' ' ~ client.nom if client.type == 'personne' else client.raison_sociale }} - Mon cabinet{% endblock %}
 
 {% block content %}
 <div class="page-content">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }} — Mon cabinet{% endblock %}
+{% block title %}{{ 'Modifier le dossier' if is_edit else 'Nouveau dossier' }} - Mon cabinet{% endblock %}
 
 {% block content %}
 <div class="page-content">
@@ -144,7 +144,7 @@
         {% endif %}
       </div>
     </form>
-    {# fin du formulaire principal — les formulaires échéances sont séparés ci-dessous #}
+    {# fin du formulaire principal - les formulaires échéances sont séparés ci-dessous #}
 
     {# ── Échéances (modification uniquement) ── #}
     {% if is_edit %}
@@ -185,7 +185,7 @@
     </div>
     {% endif %}
 
-    {# ── Boutons d'action — tout en bas ── #}
+    {# ── Boutons d'action - tout en bas ── #}
     <div class="form-actions">
       <button type="submit" form="form-dossier" class="btn btn-primary">
         {{ 'Enregistrer les modifications' if is_edit else 'Créer le dossier' }}

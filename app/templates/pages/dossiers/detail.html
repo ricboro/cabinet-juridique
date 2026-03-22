@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ dossier.reference }} — {{ dossier.intitule }} — Mon cabinet{% endblock %}
+{% block title %}{{ dossier.reference }} - {{ dossier.intitule }} - Mon cabinet{% endblock %}
 
 {% block content %}
 <div class="page-content">
@@ -111,7 +111,7 @@
 <div id="modal-close-dossier" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true">
   <div class="modal">
     <h3>Clôturer ce dossier</h3>
-    <p>Le dossier « {{ dossier.reference }} — {{ dossier.intitule }} » sera marqué comme clôturé. Cette action peut être annulée en modifiant le dossier.</p>
+    <p>Le dossier « {{ dossier.reference }} - {{ dossier.intitule }} » sera marqué comme clôturé. Cette action peut être annulée en modifiant le dossier.</p>
     <div class="btn-group">
       <button type="button" class="btn" onclick="document.getElementById('modal-close-dossier').style.display='none'">
         Annuler
