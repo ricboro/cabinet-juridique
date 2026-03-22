@@ -135,35 +135,30 @@ h4, h5, h6 {
 
 .search-bar input {
   width: 100%;
-  padding: 6px 12px 6px 42px;
+  padding: 6px 12px 6px 32px;
   border: 1px solid var(--border);
   border-radius: 20px;
   font: inherit;
   font-size: 0.875rem;
-  background: var(--bg);
   color: var(--text);
   transition: border-color 0.15s, box-shadow 0.15s;
+  /* Loupe en background-image : positionnée dans l'input, jamais en conflit avec le texte */
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a7068' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 14px 14px;
 }
 
 .search-bar input:focus {
   outline: none;
   border-color: var(--border-strong);
   box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08);
-  background: var(--surface);
-}
-
-.search-bar::before {
-  content: '';
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 14px;
+  background-color: var(--surface);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a7068' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-size: contain;
-  pointer-events: none;
+  background-position: 10px center;
+  background-size: 14px 14px;
 }
 
 /* ── Search dropdown ─────────────────────────────────────────── */
