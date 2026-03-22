@@ -341,25 +341,32 @@ def delete_acte(db: Session, acte_id: int) -> bool:
 
 def search(
     db: Session,
-    q: str,
+    q: str = "",
     type_acte_id: int | None = None,
-    tag_id: int | None = None,
+    tag: str | None = None,
     client_id: int | None = None,
     avocat_id: int | None = None,
     statut: str | None = None,
 ) -> dict:
-    if len(q) < 3:
+    """
+    Recherche multi-critères. Exige soit q >= 3 caractères, soit au moins un filtre actif.
+    Le filtre tag est une recherche textuelle sur le libellé (pas un ID).
+    """
+    has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
+    if len(q) < 3 and not has_filters:
         return {"dossiers": [], "actes": []}
 
-    pattern = f"%{q}%"
-
-    dossier_query = db.query(Dossier).filter(
-        or_(
-            Dossier.intitule.ilike(pattern),
-            Dossier.reference.ilike(pattern),
-            Dossier.contexte.ilike(pattern),
+    # ── Dossiers ──────────────────────────────────────────────────
+    dossier_query = db.query(Dossier)
+    if len(q) >= 3:
+        pattern = f"%{q}%"
+        dossier_query = dossier_query.filter(
+            or_(
+                Dossier.intitule.ilike(pattern),
+                Dossier.reference.ilike(pattern),
+                Dossier.contexte.ilike(pattern),
+            )
         )
-    )
     if client_id:
         dossier_query = dossier_query.filter(Dossier.client_id == client_id)
     if avocat_id:
@@ -367,11 +374,17 @@ def search(
     if statut:
         dossier_query = dossier_query.filter(Dossier.statut == statut)
 
-    acte_query = db.query(Acte).filter(Acte.nom.ilike(pattern))
+    # ── Actes ─────────────────────────────────────────────────────
+    acte_query = db.query(Acte)
+    if len(q) >= 3:
+        acte_query = acte_query.filter(Acte.nom.ilike(f"%{q}%"))
     if type_acte_id:
         acte_query = acte_query.filter(Acte.type_acte_id == type_acte_id)
-    if tag_id:
-        acte_query = acte_query.join(ActeTag).filter(ActeTag.tag_id == tag_id)
+    if tag:
+        acte_query = (
+            acte_query.join(ActeTag).join(Tag)
+            .filter(Tag.libelle.ilike(f"%{tag}%"))
+        )
 
     return {
         "dossiers": dossier_query.all(),

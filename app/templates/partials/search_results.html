@@ -1,4 +1,4 @@
-{% if q and q | length >= 3 %}
+{% if results is not none %}
   {% set dossiers_results = results.dossiers if results else [] %}
   {% set actes_results = results.actes if results else [] %}
 

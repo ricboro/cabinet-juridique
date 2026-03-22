@@ -9,21 +9,24 @@
   {# ── Barre de recherche principale ── #}
   <div class="card" style="margin-bottom: 20px;">
     <form method="get" action="{{ url_for('search_page') }}" id="search-form">
-      <div class="form-group search-main-bar" style="margin-bottom: 16px;">
-        <label for="search-q" class="sr-only">Recherche</label>
-        <input
-          type="search"
-          id="search-q"
-          name="q"
-          value="{{ q | default('') }}"
-          placeholder="Rechercher dans les dossiers, actes, clients…"
-          autocomplete="off"
-          hx-get="{{ url_for('search_htmx') }}"
-          hx-trigger="keyup[value.length>=3] delay:300ms"
-          hx-target="#search-results-container"
-          hx-swap="innerHTML"
-          hx-include="#search-form"
-        >
+      <div class="form-group search-main-bar" style="margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-end;">
+        <div style="flex: 1;">
+          <label for="search-q" class="sr-only">Recherche</label>
+          <input
+            type="text"
+            id="search-q"
+            name="q"
+            value="{{ q | default('') }}"
+            placeholder="Rechercher dans les dossiers, actes…"
+            autocomplete="off"
+            hx-get="{{ url_for('search_htmx') }}"
+            hx-trigger="keyup[value.length>=3] delay:300ms"
+            hx-target="#search-results-container"
+            hx-swap="innerHTML"
+            hx-include="#search-form"
+          >
+        </div>
+        <button type="submit" class="btn btn-primary">Rechercher</button>
       </div>
 
       {# ── Filtres secondaires ── #}
@@ -65,7 +68,7 @@
             value="{{ filters.tag | default('') }}"
             placeholder="Filtrer par tag…"
             hx-get="{{ url_for('search_htmx') }}"
-            hx-trigger="keyup changed delay:300ms"
+            hx-trigger="keyup delay:300ms"
             hx-target="#search-results-container"
             hx-include="#search-form"
           >
@@ -81,12 +84,12 @@
 
   {# ── Résultats ── #}
   <div id="search-results-container">
-    {% if q and q | length >= 3 %}
+    {% if results is not none %}
       {% include "partials/search_results.html" %}
     {% else %}
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
-        <p>Tapez au moins 3 caractères pour rechercher.</p>
+        <p>Saisissez un mot-clé (3 caractères min.) ou sélectionnez un filtre.</p>
       </div>
     {% endif %}
   </div>

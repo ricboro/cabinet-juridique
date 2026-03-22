@@ -16,7 +16,7 @@ async def search_page(
     request: Request,
     q: Optional[str] = None,
     type_acte_id: Optional[int] = None,
-    tag_id: Optional[int] = None,
+    tag: Optional[str] = None,
     client_id: Optional[int] = None,
     avocat_id: Optional[int] = None,
     statut: Optional[str] = None,
@@ -25,22 +25,23 @@ async def search_page(
 ):
     from app.main import templates, make_context
     q = q or ""
-    if q and len(q) >= 3:
+    has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
+    if len(q) >= 3 or has_filters:
         results = crud.search(
             db, q,
             type_acte_id=type_acte_id,
-            tag_id=tag_id,
+            tag=tag,
             client_id=client_id,
             avocat_id=avocat_id,
             statut=statut,
         )
     else:
-        results = {"dossiers": [], "actes": []}
+        results = None  # None = pas encore lancé (différent de "0 résultats")
 
     type_actes = crud.get_type_actes(db)
     filters = {
         "type_acte_id": type_acte_id,
-        "tag_id": tag_id,
+        "tag": tag,
         "client_id": client_id,
         "avocat_id": avocat_id,
         "statut": statut,
@@ -58,7 +59,7 @@ async def search_htmx(
     request: Request,
     q: Optional[str] = None,
     type_acte_id: Optional[int] = None,
-    tag_id: Optional[int] = None,
+    tag: Optional[str] = None,
     client_id: Optional[int] = None,
     avocat_id: Optional[int] = None,
     statut: Optional[str] = None,
@@ -67,20 +68,26 @@ async def search_htmx(
 ):
     from app.main import templates, make_context
     q = q or ""
-    if q and len(q) >= 3:
+    has_filters = any([type_acte_id, tag, client_id, avocat_id, statut])
+    if len(q) >= 3 or has_filters:
         results = crud.search(
             db, q,
             type_acte_id=type_acte_id,
-            tag_id=tag_id,
+            tag=tag,
             client_id=client_id,
             avocat_id=avocat_id,
             statut=statut,
         )
     else:
-        results = {"dossiers": [], "actes": []}
+        results = None
 
+    filters = {
+        "type_acte_id": type_acte_id,
+        "tag": tag,
+        "statut": statut,
+    }
     return templates.TemplateResponse(
         "partials/search_results.html",
         make_context(request, current_user,
-                     q=q, results=results, filters={}),
+                     q=q, results=results, filters=filters),
     )
