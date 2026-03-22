@@ -9,6 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
   {% block head %}{% endblock %}
+  {# Anti-flash : applique le thème avant le rendu #}
+  <script>
+    (function() {
+      if (localStorage.getItem('cabinet-theme') === 'dark')
+        document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
 </head>
 <body>
 
@@ -52,6 +59,17 @@
     </div>
 
     <div class="header-actions">
+      {# Bouton toggle thème — mêmes icônes SVG que le VPS dashboard #}
+      <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="Basculer le thème">
+        <!-- Soleil : visible en mode sombre pour repasser au clair -->
+        <svg id="icon-sun" fill="none" stroke="#d97706" viewBox="0 0 24 24" style="display:none;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <!-- Lune : visible en mode clair pour passer au sombre -->
+        <svg id="icon-moon" fill="none" stroke="#6366f1" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+      </button>
       {% if current_user %}
         <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
@@ -88,6 +106,32 @@
 
   {# ── Scripts ── #}
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5ViYgSibmK" crossorigin="anonymous"></script>
+
+  {# Toggle thème clair/sombre #}
+  <script>
+    function toggleTheme() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('cabinet-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('cabinet-theme', 'dark');
+      }
+      syncThemeIcons();
+    }
+
+    function syncThemeIcons() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      var sun = document.getElementById('icon-sun');
+      var moon = document.getElementById('icon-moon');
+      if (sun) sun.style.display = isDark ? '' : 'none';
+      if (moon) moon.style.display = isDark ? 'none' : '';
+    }
+
+    // Synchroniser les icônes dès le chargement
+    syncThemeIcons();
+  </script>
 
   {# Fermeture dropdown au clic extérieur #}
   <script>

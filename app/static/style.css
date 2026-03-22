@@ -18,6 +18,88 @@
   --accent-hover: #3a3a3a;
 }
 
+/* ── Mode sombre ────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg: #1c1917;
+  --surface: #28251f;
+  --border: #3d3830;
+  --border-strong: #52493e;
+  --text: #e8e2da;
+  --text-muted: #9a9088;
+  --text-light: #6a6258;
+  --accent: #e8e2da;
+  --accent-hover: #c8c0b4;
+}
+
+[data-theme="dark"] .btn-primary {
+  color: #1c1917;
+}
+[data-theme="dark"] .btn-primary:hover {
+  color: #1c1917;
+}
+[data-theme="dark"] .btn:active {
+  background: var(--border);
+}
+[data-theme="dark"] .badge-en-cours {
+  background: #14532d;
+  color: #bbf7d0;
+}
+[data-theme="dark"] .badge-cloture {
+  background: #3d3830;
+  color: #c8c0b4;
+}
+[data-theme="dark"] .badge-suspendu {
+  background: #713f12;
+  color: #fef08a;
+}
+[data-theme="dark"] .flash-success {
+  background: #14532d;
+  border-color: #16a34a;
+  color: #bbf7d0;
+}
+[data-theme="dark"] .flash-error {
+  background: #7f1d1d;
+  border-color: #dc2626;
+  color: #fecaca;
+}
+[data-theme="dark"] .flash-info {
+  background: #1e3a8a;
+  border-color: #2563eb;
+  color: #bfdbfe;
+}
+[data-theme="dark"] .btn-icon-delete:hover {
+  color: #fca5a5;
+  background: #7f1d1d;
+}
+[data-theme="dark"] .contexte-block {
+  background: #3d3830;
+  border-color: var(--border);
+}
+
+/* ── Bouton toggle thème ─────────────────────────────────────── */
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  padding: 0;
+}
+.theme-toggle-btn:hover {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+.theme-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
 /* ── Reset & base ──────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
