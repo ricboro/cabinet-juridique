@@ -61,7 +61,7 @@
 
     <div class="header-actions">
       {% if current_user %}
-        <button class="guide-trigger theme-toggle-btn" title="Guide d'utilisation" style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted);">?</button>
+        <button class="guide-trigger guide-btn" title="Guide d'utilisation">?</button>
         <span class="text-muted text-small">{{ current_user.prenom }} {{ current_user.nom }}</span>
         <form action="{{ url_for('logout') }}" method="post" style="display:inline;">
           <button type="submit" class="btn btn-sm">Déconnexion</button>

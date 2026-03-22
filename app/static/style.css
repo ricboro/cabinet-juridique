@@ -100,6 +100,26 @@
   height: 16px;
 }
 
+/* ── Bouton guide ───────────────────────────────────────────── */
+.guide-btn {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--surface);
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+.guide-btn:hover { opacity: 1; }
+
 /* ── Guide modal ────────────────────────────────────────────── */
 .guide-modal-overlay {
   display: none;
