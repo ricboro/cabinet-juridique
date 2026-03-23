@@ -37,6 +37,9 @@ class ClientBase(BaseModel):
     email: Optional[str] = None
     telephone: Optional[str] = None
     adresse: Optional[str] = None
+    source_type: Optional[str] = None
+    source_detail: Optional[str] = None
+    source_client_id: Optional[int] = None
 
 
 class ClientCreate(ClientBase):
@@ -52,6 +55,9 @@ class ClientUpdate(BaseModel):
     email: Optional[str] = None
     telephone: Optional[str] = None
     adresse: Optional[str] = None
+    source_type: Optional[str] = None
+    source_detail: Optional[str] = None
+    source_client_id: Optional[int] = None
 
 
 class DossierSimple(BaseModel):
@@ -63,12 +69,23 @@ class DossierSimple(BaseModel):
     statut: str
 
 
+class ClientSimple(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    type: str
+    nom: Optional[str] = None
+    prenom: Optional[str] = None
+    raison_sociale: Optional[str] = None
+
+
 class ClientResponse(ClientBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     date_creation: Optional[datetime.datetime] = None
     dossiers: list[DossierSimple] = []
+    source_client: Optional[ClientSimple] = None
 
 
 # ---------------------------------------------------------------------------

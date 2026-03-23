@@ -79,6 +79,39 @@
           {{ client.date_creation.strftime('%d/%m/%Y') if client.date_creation else '—' }}
         </div>
       </div>
+      <div class="info-item" style="grid-column: 1 / -1;">
+        <div class="info-label">Comment a connu le cabinet</div>
+        <div class="info-value">
+          {% if client.source_type == 'bouche_a_oreille' %}
+            Bouche à oreille
+            {% if client.source_detail == 'client' %}
+              — via un client existant
+              {% if client.source_client %}
+                (<a href="{{ url_for('client_detail', id=client.source_client.id) }}">
+                  {% if client.source_client.type == 'personne' %}{{ client.source_client.prenom }} {{ client.source_client.nom }}{% else %}{{ client.source_client.raison_sociale }}{% endif %}
+                </a>)
+              {% else %}
+                (client non identifié)
+              {% endif %}
+            {% elif client.source_detail == 'confrere' %}
+              — via un(e) confrère/consoeur
+            {% endif %}
+          {% elif client.source_type == 'internet' %}
+            Recherche internet
+          {% elif client.source_type == 'assureur' %}
+            Proposition d'un assureur
+          {% elif client.source_type == 'reseaux_sociaux' %}
+            Réseaux sociaux
+            {% if client.source_detail == 'linkedin' %} — LinkedIn
+            {% elif client.source_detail == 'instagram' %} — Vidéo Instagram
+            {% elif client.source_detail == 'tiktok' %} — Vidéo TikTok
+            {% elif client.source_detail == 'facebook' %} — Vidéo Facebook
+            {% endif %}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 

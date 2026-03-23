@@ -30,8 +30,12 @@ class Client(Base):
     telephone = Column(String(20), nullable=True)
     adresse = Column(Text, nullable=True)
     date_creation = Column(DateTime, default=func.now())
+    source_type = Column(String(50), nullable=True)
+    source_detail = Column(String(50), nullable=True)
+    source_client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
 
     dossiers = relationship("Dossier", back_populates="client")
+    source_client = relationship("Client", foreign_keys=[source_client_id], remote_side="Client.id")
 
 
 class Dossier(Base):

@@ -171,6 +171,67 @@
         </div>
       </div>
 
+      {# ── Provenance ── #}
+      <div class="form-section">
+        <div class="form-section-title">Comment a-t-il connu le cabinet ?</div>
+        <div class="form-group">
+          <label for="source_type">Source</label>
+          <select id="source_type" name="source_type" onchange="toggleSourceDetail(this.value)">
+            <option value="">-- Non renseigné --</option>
+            <option value="bouche_a_oreille" {% if client and client.source_type == 'bouche_a_oreille' %}selected{% endif %}>Bouche à oreille</option>
+            <option value="internet" {% if client and client.source_type == 'internet' %}selected{% endif %}>Recherche internet</option>
+            <option value="assureur" {% if client and client.source_type == 'assureur' %}selected{% endif %}>Proposition d'un assureur</option>
+            <option value="reseaux_sociaux" {% if client and client.source_type == 'reseaux_sociaux' %}selected{% endif %}>Réseaux sociaux</option>
+          </select>
+        </div>
+
+        {# Sous-choix bouche à oreille #}
+        <div id="detail-bouche-a-oreille" style="display: none;">
+          <div class="form-group">
+            <label for="source_detail_bao">Via</label>
+            <select id="source_detail_bao" onchange="syncSourceDetail(this.value); toggleClientReferent(this.value)">
+              <option value="">-- Choisir --</option>
+              <option value="client" {% if client and client.source_detail == 'client' %}selected{% endif %}>Un client existant</option>
+              <option value="confrere" {% if client and client.source_detail == 'confrere' %}selected{% endif %}>Un(e) confrère/consoeur</option>
+            </select>
+          </div>
+          <div id="client-referent-block" style="display: none;">
+            <div class="form-group">
+              <label for="source_client_id">Client référent <span class="text-muted" style="font-weight: normal; font-size: 0.85em;">(optionnel)</span></label>
+              <select id="source_client_id" name="source_client_id">
+                <option value="">-- Inconnu --</option>
+                {% for c in all_clients %}
+                  {% if not is_edit or c.id != client.id %}
+                    <option value="{{ c.id }}"
+                      {% if client and client.source_client_id == c.id %}selected{% endif %}>
+                      {% if c.type == 'personne' %}{{ c.prenom }} {{ c.nom }}{% else %}{{ c.raison_sociale }}{% endif %}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {# Sous-choix réseaux sociaux #}
+        <div id="detail-reseaux-sociaux" style="display: none;">
+          <div class="form-group">
+            <label for="source_detail_rs">Réseau</label>
+            <select id="source_detail_rs" onchange="syncSourceDetail(this.value)">
+              <option value="">-- Choisir --</option>
+              <option value="linkedin" {% if client and client.source_detail == 'linkedin' %}selected{% endif %}>LinkedIn</option>
+              <option value="instagram" {% if client and client.source_detail == 'instagram' %}selected{% endif %}>Vidéo Instagram</option>
+              <option value="tiktok" {% if client and client.source_detail == 'tiktok' %}selected{% endif %}>Vidéo TikTok</option>
+              <option value="facebook" {% if client and client.source_detail == 'facebook' %}selected{% endif %}>Vidéo Facebook</option>
+            </select>
+          </div>
+        </div>
+
+        {# Champ caché source_detail synchronisé #}
+        <input type="hidden" id="source_detail" name="source_detail"
+               value="{{ client.source_detail if client else '' }}">
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">
           {{ 'Enregistrer les modifications' if is_edit else 'Créer le client' }}
@@ -207,11 +268,53 @@
     }
   }
 
+  function toggleSourceDetail(sourceType) {
+    document.getElementById('detail-bouche-a-oreille').style.display = 'none';
+    document.getElementById('detail-reseaux-sociaux').style.display = 'none';
+    document.getElementById('client-referent-block').style.display = 'none';
+
+    if (sourceType === 'bouche_a_oreille') {
+      document.getElementById('detail-bouche-a-oreille').style.display = '';
+      var detailBao = document.getElementById('source_detail_bao').value;
+      if (detailBao === 'client') {
+        document.getElementById('client-referent-block').style.display = '';
+      }
+    } else if (sourceType === 'reseaux_sociaux') {
+      document.getElementById('detail-reseaux-sociaux').style.display = '';
+    }
+
+    // Réinitialiser source_detail si la source change
+    if (sourceType !== 'bouche_a_oreille' && sourceType !== 'reseaux_sociaux') {
+      document.getElementById('source_detail').value = '';
+      document.getElementById('source_client_id').value = '';
+    }
+  }
+
+  function toggleClientReferent(detailValue) {
+    var block = document.getElementById('client-referent-block');
+    if (detailValue === 'client') {
+      block.style.display = '';
+    } else {
+      block.style.display = 'none';
+      document.getElementById('source_client_id').value = '';
+    }
+  }
+
+  function syncSourceDetail(value) {
+    document.getElementById('source_detail').value = value;
+  }
+
   // Initialisation au chargement
   document.addEventListener('DOMContentLoaded', function() {
     var checked = document.querySelector('input[name="type"]:checked');
     if (checked) {
       toggleClientType(checked.value);
+    }
+
+    // Restaurer l'état source au chargement (mode édition ou erreur form)
+    var sourceType = document.getElementById('source_type').value;
+    if (sourceType) {
+      toggleSourceDetail(sourceType);
     }
   });
 </script>

@@ -40,6 +40,10 @@ def _validate_client_form(form_data: dict) -> dict:
 
 
 def _parse_client_form(form) -> dict:
+    source_type = form.get("source_type", "").strip() or None
+    source_detail = form.get("source_detail", "").strip() or None
+    source_client_id_raw = form.get("source_client_id", "").strip()
+    source_client_id = int(source_client_id_raw) if source_client_id_raw else None
     return {
         "type": form.get("type", "").strip(),
         "nom": form.get("nom", "").strip() or None,
@@ -49,6 +53,9 @@ def _parse_client_form(form) -> dict:
         "email": form.get("email", "").strip() or None,
         "telephone": form.get("telephone", "").strip() or None,
         "adresse": form.get("adresse", "").strip() or None,
+        "source_type": source_type,
+        "source_detail": source_detail,
+        "source_client_id": source_client_id,
     }
 
 
@@ -80,9 +87,11 @@ async def client_new(
     current_user=Depends(get_current_user),
 ):
     from app.main import templates, make_context
+    all_clients, _ = crud.get_clients(db, limit=1000)
     return templates.TemplateResponse(
         "pages/clients/form.html",
-        make_context(request, current_user, client=None, is_edit=False, errors={}),
+        make_context(request, current_user, client=None, is_edit=False, errors={},
+                     all_clients=all_clients),
     )
 
 
@@ -98,10 +107,11 @@ async def client_create(
     errors = _validate_client_form(form_data)
 
     if errors:
+        all_clients, _ = crud.get_clients(db, limit=1000)
         return templates.TemplateResponse(
             "pages/clients/form.html",
             make_context(request, current_user, client=form_data,
-                         is_edit=False, errors=errors),
+                         is_edit=False, errors=errors, all_clients=all_clients),
             status_code=422,
         )
 
@@ -147,9 +157,11 @@ async def client_edit(
         response = RedirectResponse(url=request.url_for("clients_list"), status_code=303)
         set_flash(response, "Client introuvable", "error")
         return response
+    all_clients, _ = crud.get_clients(db, limit=1000)
     return templates.TemplateResponse(
         "pages/clients/form.html",
-        make_context(request, current_user, client=client, is_edit=True, errors={}),
+        make_context(request, current_user, client=client, is_edit=True, errors={},
+                     all_clients=all_clients),
     )
 
 
@@ -172,10 +184,11 @@ async def client_update(
     errors = _validate_client_form(form_data)
 
     if errors:
+        all_clients, _ = crud.get_clients(db, limit=1000)
         return templates.TemplateResponse(
             "pages/clients/form.html",
             make_context(request, current_user, client=form_data,
-                         is_edit=True, errors=errors),
+                         is_edit=True, errors=errors, all_clients=all_clients),
             status_code=422,
         )
 

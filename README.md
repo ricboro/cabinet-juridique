@@ -125,16 +125,16 @@ Avocat
       |
       | 1..N
       v
-Dossier <────────── Client
-├── id (PK)          ├── id (PK)
-├── reference         ├── type (personne/societe)
-│   (AAAA-NNN)       ├── nom, prenom
-├── intitule          ├── raison_sociale, siret
-├── contexte          ├── email, telephone, adresse
-├── statut            └── date_creation
-│   (en_cours/
-│    cloture/
-│    transfere)
+Dossier <────────── Client ──────────────┐ (référent)
+├── id (PK)          ├── id (PK)         │
+├── reference         ├── type (personne/societe)      │
+│   (AAAA-NNN)       ├── nom, prenom     │
+├── intitule          ├── raison_sociale, siret         │
+├── contexte          ├── email, telephone, adresse     │
+├── statut            ├── date_creation   │
+│   (en_cours/        ├── source_type     │
+│    cloture/          ├── source_detail   │
+│    transfere)        └── source_client_id (FK) ───────┘
 ├── date_ouverture
 ├── date_cloture
 ├── client_id (FK)
@@ -186,6 +186,7 @@ TypeActe
 - Liste paginée (20/page) triée par nom
 - Accès direct aux dossiers d'un client depuis sa fiche
 - Suppression bloquée si dossiers existants
+- **Provenance client** : comment le client a connu le cabinet (bouche à oreille via client existant ou confrère, internet, assureur, réseaux sociaux — LinkedIn / Instagram / TikTok / Facebook). Pour les recommandations clients, le référent est optionnel (peut être inconnu). Affiché sur la fiche client avec lien vers le client référent si renseigné.
 
 ### Dossiers
 
@@ -336,7 +337,9 @@ cabinet-juridique/
 │   └── versions/
 │       ├── 0001_initial_schema.py  # Migration initiale : toutes les tables
 │       ├── 0002_echeances.py       # Échéances multiples par dossier (libellé + date)
-│       └── 0003_acte_dossier_fk.py # Acte → FK dossier_id directe (suppression many-to-many)
+│       ├── 0003_acte_dossier_fk.py # Acte → FK dossier_id directe (suppression many-to-many)
+│       ├── 0004_statut_transfere.py # Statut dossier "suspendu" → "transféré"
+│       └── 0005_client_source.py   # Provenance client (source_type, source_detail, source_client_id)
 ├── data/
 │   └── .gitkeep             # Répertoire versionné mais cabinet.db gitignorée
 ├── Dockerfile               # python:3.12-slim, copie app/ + alembic/, EXPOSE 8092
@@ -792,6 +795,12 @@ docker compose start nginx
 - [x] Auto-hébergement HTMX + polices (RGPD, pas de CDN tiers)
 - [x] Validation email et téléphone côté serveur
 
+### Evolutions livrées post-MVP
+
+- [x] Statut dossier "suspendu" renommé en "transféré" (migration 0004)
+- [x] Provenance client : comment le client a connu le cabinet (migration 0005)
+  - Bouche à oreille (client existant optionnel / confrère), internet, assureur, réseaux sociaux (LinkedIn / Instagram / TikTok / Facebook)
+
 ### Après MVP
 
 - [ ] Let's Encrypt quand domaine décidé
@@ -799,5 +808,5 @@ docker compose start nginx
 - [ ] Backup automatisé quotidien (crontab)
 - [ ] Export CSV (liste clients, liste dossiers par période)
 - [ ] Suivi d'événements sur un dossier (audiences, relances, notes de suivi horodatées)
-- [ ] Statistiques avancées sur le dashboard (dossiers par mois, types d'actes les plus produits)
+- [ ] Statistiques avancées sur le dashboard (dossiers par mois, types d'actes les plus produits, sources d'acquisition clients)
 - [ ] Migration PostgreSQL si montée en charge
