@@ -33,6 +33,8 @@ class Client(Base):
     source_type = Column(String(50), nullable=True)
     source_detail = Column(String(50), nullable=True)
     source_client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    representant_nom = Column(String(100), nullable=True)
+    representant_prenom = Column(String(100), nullable=True)
     titre = Column(String(50), nullable=True)
     profession = Column(String(100), nullable=True)
     specialite = Column(String(100), nullable=True)

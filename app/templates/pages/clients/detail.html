@@ -56,6 +56,16 @@
           <div class="info-label">SIRET</div>
           <div class="info-value">{{ client.siret or '—' }}</div>
         </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+          <div class="info-label">Représentant légal</div>
+          <div class="info-value">
+            {% if client.representant_prenom or client.representant_nom %}
+              {{ client.representant_prenom }} {{ client.representant_nom }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+        </div>
       {% endif %}
       <div class="info-item">
         <div class="info-label">Email</div>

@@ -40,6 +40,8 @@ class ClientBase(BaseModel):
     source_type: Optional[str] = None
     source_detail: Optional[str] = None
     source_client_id: Optional[int] = None
+    representant_nom: Optional[str] = None
+    representant_prenom: Optional[str] = None
     titre: Optional[str] = None
     profession: Optional[str] = None
     specialite: Optional[str] = None
@@ -61,6 +63,8 @@ class ClientUpdate(BaseModel):
     source_type: Optional[str] = None
     source_detail: Optional[str] = None
     source_client_id: Optional[int] = None
+    representant_nom: Optional[str] = None
+    representant_prenom: Optional[str] = None
     titre: Optional[str] = None
     profession: Optional[str] = None
     specialite: Optional[str] = None

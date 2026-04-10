@@ -122,6 +122,35 @@
             <span class="error-msg">{{ errors.siret }}</span>
           {% endif %}
         </div>
+        <div class="form-section-title" style="margin-top: 16px;">Représentant légal</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="representant_prenom">Prénom <span class="required">*</span></label>
+            <input
+              type="text"
+              id="representant_prenom"
+              name="representant_prenom"
+              value="{{ client.representant_prenom if client else '' }}"
+              autocomplete="off"
+            >
+            {% if errors and errors.representant_prenom %}
+              <span class="error-msg">{{ errors.representant_prenom }}</span>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <label for="representant_nom">Nom <span class="required">*</span></label>
+            <input
+              type="text"
+              id="representant_nom"
+              name="representant_nom"
+              value="{{ client.representant_nom if client else '' }}"
+              autocomplete="off"
+            >
+            {% if errors and errors.representant_nom %}
+              <span class="error-msg">{{ errors.representant_nom }}</span>
+            {% endif %}
+          </div>
+        </div>
       </div>
 
       {# ── Coordonnées ── #}
@@ -408,6 +437,8 @@
       document.getElementById('prenom').required = true;
       document.getElementById('nom').required = true;
       document.getElementById('raison_sociale').required = false;
+      document.getElementById('representant_prenom').required = false;
+      document.getElementById('representant_nom').required = false;
     } else {
       fieldsPersonne.style.display = 'none';
       fieldsSociete.style.display = '';
@@ -415,6 +446,8 @@
       document.getElementById('prenom').required = false;
       document.getElementById('nom').required = false;
       document.getElementById('raison_sociale').required = true;
+      document.getElementById('representant_prenom').required = true;
+      document.getElementById('representant_nom').required = true;
     }
   }
 

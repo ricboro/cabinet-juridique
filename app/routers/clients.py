@@ -25,6 +25,10 @@ def _validate_client_form(form_data: dict) -> dict:
     elif client_type == "societe":
         if not (form_data.get("raison_sociale") or "").strip():
             errors["raison_sociale"] = "La raison sociale est obligatoire"
+        if not (form_data.get("representant_nom") or "").strip():
+            errors["representant_nom"] = "Le nom du représentant légal est obligatoire"
+        if not (form_data.get("representant_prenom") or "").strip():
+            errors["representant_prenom"] = "Le prénom du représentant légal est obligatoire"
     else:
         errors["type"] = "Le type de client est obligatoire"
 
@@ -56,6 +60,8 @@ def _parse_client_form(form) -> dict:
         "source_type": source_type,
         "source_detail": source_detail,
         "source_client_id": source_client_id,
+        "representant_nom": form.get("representant_nom", "").strip() or None,
+        "representant_prenom": form.get("representant_prenom", "").strip() or None,
         "titre": form.get("titre", "").strip() or None,
         "profession": form.get("profession", "").strip() or None,
         "specialite": form.get("specialite", "").strip() or None,
