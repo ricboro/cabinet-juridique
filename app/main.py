@@ -64,6 +64,17 @@ async def redirect_exception_handler(request: Request, exc: _RedirectException):
     return RedirectResponse(url=exc.url, status_code=303)
 
 
+@app.middleware("http")
+async def clear_flash_after_read(request: Request, call_next):
+    """Supprime le cookie flash dès qu'il est présent sur la requête.
+    Le cookie a déjà été lu et injecté dans le contexte du template —
+    on le supprime de la réponse pour qu'il n'apparaisse pas sur la page suivante."""
+    response = await call_next(request)
+    if request.cookies.get("flash"):
+        response.delete_cookie("flash", path="/")
+    return response
+
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 templates = Jinja2Templates(directory="app/templates")
