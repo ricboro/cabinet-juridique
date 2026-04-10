@@ -134,9 +134,11 @@ Dossier <────────── Client ───────────
 ├── statut            ├── date_creation   │
 │   (en_cours/        ├── source_type     │
 │    cloture/          ├── source_detail   │
-│    transfere)        └── source_client_id (FK) ───────┘
-├── date_ouverture
-├── date_cloture
+│    transfere)        ├── source_client_id (FK) ───────┘
+├── date_ouverture   ├── titre (ex: Docteur)
+├── date_cloture     ├── profession (santé)
+├── honoraire_horaire └── specialite (médicale)
+├── estimation_heures
 ├── client_id (FK)
 └── avocat_id (FK)
       |
@@ -187,6 +189,7 @@ TypeActe
 - Accès direct aux dossiers d'un client depuis sa fiche
 - Suppression bloquée si dossiers existants
 - **Provenance client** : comment le client a connu le cabinet (bouche à oreille via client existant ou confrère, internet, assureur, réseaux sociaux — LinkedIn / Instagram / TikTok / Facebook). Pour les recommandations clients, le référent est optionnel (peut être inconnu). Affiché sur la fiche client avec lien vers le client référent si renseigné.
+- **Profil professionnel** (personne physique uniquement) : titre (texte libre, auto-renseigné "Docteur" si la profession sélectionnée est Médecin), profession (autocomplétion sur 24 professions de santé), spécialité médicale (autocomplétion sur 49 spécialités, visible uniquement si Médecin). Le titre s'affiche devant le nom dans la liste clients et la fiche client.
 
 ### Dossiers
 
@@ -197,6 +200,7 @@ TypeActe
 - Échéances multiples (audience, conciliation, délai...) : libellé + date, ajout/suppression depuis la fiche
 - Filtres : statut, client, avocat
 - Clôture en 1 clic (bouton dédié)
+- **Honoraires** : taux horaire (€/h, défaut 300 €) et estimation en heures, tous deux éditables. Total estimé calculé et affiché en temps réel dans le formulaire et sur la fiche dossier.
 
 ### Actes
 
@@ -339,7 +343,9 @@ cabinet-juridique/
 │       ├── 0002_echeances.py       # Échéances multiples par dossier (libellé + date)
 │       ├── 0003_acte_dossier_fk.py # Acte → FK dossier_id directe (suppression many-to-many)
 │       ├── 0004_statut_transfere.py # Statut dossier "suspendu" → "transféré"
-│       └── 0005_client_source.py   # Provenance client (source_type, source_detail, source_client_id)
+│       ├── 0005_client_source.py   # Provenance client (source_type, source_detail, source_client_id)
+│       ├── 0006_client_profession.py # Profil professionnel (titre, profession, specialite)
+│       └── 0007_dossier_honoraires.py # Honoraires par dossier (honoraire_horaire, estimation_heures)
 ├── data/
 │   └── .gitkeep             # Répertoire versionné mais cabinet.db gitignorée
 ├── Dockerfile               # python:3.12-slim, copie app/ + alembic/, EXPOSE 8092
@@ -800,6 +806,8 @@ docker compose start nginx
 - [x] Statut dossier "suspendu" renommé en "transféré" (migration 0004)
 - [x] Provenance client : comment le client a connu le cabinet (migration 0005)
   - Bouche à oreille (client existant optionnel / confrère), internet, assureur, réseaux sociaux (LinkedIn / Instagram / TikTok / Facebook)
+- [x] Profil professionnel client (migration 0006) : titre auto (Docteur si Médecin), profession avec autocomplétion (24 professions de santé), spécialité médicale (49 options, conditionnel)
+- [x] Honoraires par dossier (migration 0007) : taux horaire (défaut 300 €/h), estimation en heures, total estimé calculé en temps réel
 
 ### Après MVP
 
