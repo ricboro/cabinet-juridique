@@ -18,6 +18,8 @@ services:
     volumes:
       - ./data:/data                  # SQLite persisté sur le host
     env_file: .env
+    environment:
+      - API_KEY=${API_KEY:-}
     user: "997:986"
     restart: unless-stopped
     healthcheck:

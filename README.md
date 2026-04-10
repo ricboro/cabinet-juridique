@@ -21,8 +21,9 @@ Accès Tailscale direct : `http://100.81.134.30:8092`
 9. [Installation et lancement](#9-installation-et-lancement)
 10. [Développement local](#10-développement-local)
 11. [Tests](#11-tests)
-12. [Operations et maintenance](#12-operations-et-maintenance)
-13. [Roadmap](#13-roadmap)
+12. [API REST](#12-api-rest)
+13. [Operations et maintenance](#13-operations-et-maintenance)
+14. [Roadmap](#14-roadmap)
 
 ---
 
@@ -103,13 +104,15 @@ Navigateur (Internet)
 | Modeles | `app/models.py` | Tables SQLAlchemy, relations ORM |
 | Schemas | `app/schemas.py` | Validation Pydantic v2 (entrees/sorties) |
 | CRUD | `app/crud.py` | Toute la logique metier et acces DB |
-| Auth | `app/auth.py` | Session cookie, dépendances FastAPI |
-| Routers | `app/routers/*.py` | Routes HTTP, parsing form, redirects |
+| Auth web | `app/auth.py` | Session cookie, dépendances FastAPI |
+| Auth API | `app/api/auth.py` | Dépendance `require_api_key` (header X-API-Key) |
+| Routers web | `app/routers/*.py` | Routes HTTP, parsing form, redirects |
+| Routers API | `app/api/routes/*.py` | Endpoints JSON REST (prefix `/api/v1`) |
 | Templates | `app/templates/` | HTML Jinja2 (pages completes + partials HTMX) |
 | Utils | `app/utils.py` | Fonctions partagées (parse_date...) |
 | Seed | `app/seed.py` | Données initiales au premier démarrage |
 
-**Règle absolue** : toute logique metier passe par `crud.py`. Les routers ne font que parser le formulaire, appeler crud, et rediriger.
+**Règle absolue** : toute logique metier passe par `crud.py`. Les routers (web et API) ne font qu'appeler crud et formater la réponse.
 
 ---
 
@@ -275,12 +278,21 @@ cabinet-juridique/
 │   ├── database.py          # Engine SQLAlchemy, SessionLocal, Base, get_db(), init_db()
 │   ├── models.py            # 8 modeles ORM : Avocat, Client, Dossier, Echeance,
 │   │                        #   TypeActe, Acte, Tag, ActeTag
-│   ├── schemas.py           # Schemas Pydantic v2 (validation entrées/sorties API)
+│   ├── schemas.py           # Schemas Pydantic v2 (validation entrées/sorties)
 │   ├── crud.py              # Toutes les fonctions CRUD (logique metier centralisée)
 │   ├── auth.py              # Session cookie itsdangerous, get_current_user(),
 │   │                        #   flash messages, _RedirectException
 │   ├── utils.py             # parse_date() partagée entre routers
 │   ├── seed.py              # Données initiales : 12 types d'actes + avocat admin
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── auth.py          # Dépendance require_api_key (header X-API-Key)
+│   │   ├── router.py        # Router principal monté sous /api/v1
+│   │   └── routes/
+│   │       ├── clients.py   # GET/POST/PUT/DELETE /api/v1/clients
+│   │       ├── dossiers.py  # CRUD + close + echeances + generate
+│   │       ├── actes.py     # GET/POST/PUT/DELETE /api/v1/actes
+│   │       └── type_actes.py # GET/POST/DELETE /api/v1/type-actes
 │   ├── routers/
 │   │   ├── clients.py       # GET/POST /clients, /clients/{id}, /clients/{id}/edit...
 │   │   ├── dossiers.py      # GET/POST /dossiers, /dossiers/{id}/close...
@@ -415,6 +427,8 @@ fail2ban surveille les logs Nginx → ban automatique après 5 tentatives de log
 | Code | Validation URL OneDrive | urlparse vérifie scheme http/https et netloc |
 | Code | ORM SQLAlchemy | Aucune requête SQL brute, injection SQL impossible |
 | Secrets | .env gitignored | Clé secrète et credentials hors du repo |
+| API | X-API-Key | Clé 64 hex (256 bits), passée en header — aucun endpoint API sans clé valide |
+| Nginx | `/api/` bloqué port public | `return 403` sur toute requête `/api/*` via port 9444 — API accessible Tailscale :8092 uniquement |
 
 ### Ce qui reste à faire
 
@@ -526,6 +540,10 @@ DATABASE_URL=sqlite:////data/cabinet.db
 
 # Port d'écoute du serveur
 PORT=8092
+
+# Clé d'authentification API REST (header X-API-Key)
+# Générer avec : python3 -c "import secrets; print(secrets.token_hex(32))"
+API_KEY=remplacer-par-une-cle-api-secrete
 ```
 
 ### Premier démarrage
@@ -653,7 +671,51 @@ pytest tests/test_routes_auth.py::test_login_success_redirects -v
 
 ---
 
-## 12. Operations et maintenance
+## 12. API REST
+
+L'application expose une API REST JSON accessible uniquement via Tailscale (`http://100.81.134.30:8092/api/v1`).
+Le port public 9444 (nginx) bloque toutes les requêtes `/api/*` avec un `403`.
+
+**Documentation complète : [`docs/api.md`](docs/api.md)**
+
+### Authentification rapide
+
+```bash
+# Toutes les requêtes doivent inclure le header :
+X-API-Key: <valeur de API_KEY dans .env>
+
+# Sans clé ou clé invalide → 401
+```
+
+### Endpoints disponibles
+
+| Ressource | Méthodes |
+|---|---|
+| Clients | `GET /clients` `GET /clients/{id}` `POST /clients` `PUT /clients/{id}` `DELETE /clients/{id}` |
+| Dossiers | `GET /dossiers` `GET /dossiers/{id}` `POST /dossiers` `PUT /dossiers/{id}` `POST /dossiers/{id}/close` `DELETE /dossiers/{id}` |
+| Echéances | `POST /dossiers/{id}/echeances` `DELETE /dossiers/{id}/echeances/{eid}` |
+| Actes | `GET /actes/{id}` `POST /actes` `PUT /actes/{id}` `DELETE /actes/{id}` |
+| Type-actes | `GET /type-actes` `POST /type-actes` `DELETE /type-actes/{id}` |
+| Documents | `GET /dossiers/{id}/generate` (retourne le DOCX) |
+
+### Test rapide
+
+```bash
+API_KEY=<votre clé>
+
+# Liste des clients
+curl http://100.81.134.30:8092/api/v1/clients -H "X-API-Key: $API_KEY"
+
+# Sans clé → 401
+curl http://100.81.134.30:8092/api/v1/clients
+
+# Via port public → 403
+curl -k https://92.222.243.19:9444/api/v1/clients
+```
+
+---
+
+## 13. Operations et maintenance
 
 ### Backup
 
@@ -777,7 +839,7 @@ docker compose start nginx
 
 ---
 
-## 13. Roadmap
+## 14. Roadmap
 
 ### MVP (livré)
 
@@ -808,6 +870,13 @@ docker compose start nginx
   - Bouche à oreille (client existant optionnel / confrère), internet, assureur, réseaux sociaux (LinkedIn / Instagram / TikTok / Facebook)
 - [x] Profil professionnel client (migration 0006) : titre auto (Docteur si Médecin), profession avec autocomplétion (24 professions de santé), spécialité médicale (49 options, conditionnel)
 - [x] Honoraires par dossier (migration 0007) : taux horaire (défaut 300 €/h), estimation en heures, total estimé calculé en temps réel
+
+### Evolutions livrées (suite)
+
+- [x] API REST JSON Tailscale-only avec authentification par API Key (issue #4)
+  - `app/api/` : auth, router, routes clients/dossiers/actes/type-actes
+  - Nginx bloque `/api/` sur port public (403)
+  - Documentation complète dans `docs/api.md`
 
 ### Après MVP
 
