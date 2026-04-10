@@ -23,7 +23,8 @@ Accès Tailscale direct : `http://100.81.134.30:8092`
 11. [Tests](#11-tests)
 12. [API REST](#12-api-rest)
 13. [Operations et maintenance](#13-operations-et-maintenance)
-14. [Roadmap](#14-roadmap)
+14. [MCP Server (Claude Code)](#14-mcp-server-claude-code)
+15. [Roadmap](#15-roadmap)
 
 ---
 
@@ -839,7 +840,51 @@ docker compose start nginx
 
 ---
 
-## 14. Roadmap
+## 14. MCP Server (Claude Code)
+
+Un MCP server Python est disponible dans `mcp/` pour permettre à Claude Code de manipuler les données du cabinet en langage naturel, sans écrire de requêtes HTTP manuellement.
+
+**Documentation complète : [`mcp/README.md`](mcp/README.md)**
+
+### Installation rapide
+
+```bash
+pip install -r mcp/requirements.txt
+```
+
+### Enregistrement dans `~/.claude.json`
+
+```json
+{
+  "mcpServers": {
+    "cabinet-juridique": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["/chemin/absolu/vers/cabinet-juridique/mcp/cabinet_mcp_server.py"],
+      "env": {
+        "CABINET_API_KEY": "votre-clé-api",
+        "CABINET_API_URL": "http://100.81.134.30:8092/api/v1"
+      }
+    }
+  }
+}
+```
+
+### Tools disponibles (21)
+
+Clients, dossiers, échéances, actes, types d'actes, génération de convention d'honoraires (DOCX).
+Voir [`mcp/README.md`](mcp/README.md) pour la liste complète.
+
+### Vérification
+
+```
+/mcp
+# → cabinet-juridique: connected ✓
+```
+
+---
+
+## 15. Roadmap
 
 ### MVP (livré)
 
@@ -877,6 +922,9 @@ docker compose start nginx
   - `app/api/` : auth, router, routes clients/dossiers/actes/type-actes
   - Nginx bloque `/api/` sur port public (403)
   - Documentation complète dans `docs/api.md`
+- [x] MCP Server Python pour Claude Code (FastMCP, 21 tools)
+  - `mcp/cabinet_mcp_server.py` : clients, dossiers, échéances, actes, types d'actes, génération DOCX
+  - Documentation dans `mcp/README.md`
 
 ### Après MVP
 

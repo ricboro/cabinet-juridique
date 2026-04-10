@@ -5,6 +5,9 @@ API JSON exposée sur le port Tailscale `8092`, préfixe `/api/v1`.
 **Accès :** `http://100.81.134.30:8092/api/v1`
 **Port public 9444 :** toutes les requêtes `/api/*` sont bloquées par nginx (`403 Forbidden`).
 
+> **MCP Server disponible** : un wrapper FastMCP (21 tools) permet d'utiliser cette API
+> directement depuis Claude Code en langage naturel. Voir [`mcp/README.md`](../mcp/README.md).
+
 ---
 
 ## Authentification
