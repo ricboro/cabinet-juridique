@@ -77,6 +77,23 @@
           {{ dossier.date_cloture.strftime('%d/%m/%Y') if dossier.date_cloture else '—' }}
         </div>
       </div>
+      {% if dossier.honoraire_horaire is not none %}
+      <div class="info-item">
+        <div class="info-label">Taux horaire</div>
+        <div class="info-value">{{ "%.2f"|format(dossier.honoraire_horaire) }} €/h</div>
+      </div>
+      {% endif %}
+      {% if dossier.estimation_heures is not none %}
+      <div class="info-item">
+        <div class="info-label">Estimation</div>
+        <div class="info-value">
+          {{ dossier.estimation_heures }} h
+          {% if dossier.honoraire_horaire is not none %}
+            — <strong>{{ "%.2f"|format(dossier.honoraire_horaire * dossier.estimation_heures) }} €</strong> estimés
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     {% if dossier.contexte %}

@@ -40,6 +40,9 @@ class ClientBase(BaseModel):
     source_type: Optional[str] = None
     source_detail: Optional[str] = None
     source_client_id: Optional[int] = None
+    titre: Optional[str] = None
+    profession: Optional[str] = None
+    specialite: Optional[str] = None
 
 
 class ClientCreate(ClientBase):
@@ -58,6 +61,9 @@ class ClientUpdate(BaseModel):
     source_type: Optional[str] = None
     source_detail: Optional[str] = None
     source_client_id: Optional[int] = None
+    titre: Optional[str] = None
+    profession: Optional[str] = None
+    specialite: Optional[str] = None
 
 
 class DossierSimple(BaseModel):
@@ -98,6 +104,8 @@ class DossierBase(BaseModel):
     statut: Optional[str] = "en_cours"
     date_ouverture: datetime.date
     date_cloture: Optional[datetime.date] = None
+    honoraire_horaire: Optional[float] = None
+    estimation_heures: Optional[float] = None
     client_id: int
 
 
@@ -111,6 +119,8 @@ class DossierUpdate(BaseModel):
     statut: Optional[str] = None
     date_ouverture: Optional[datetime.date] = None
     date_cloture: Optional[datetime.date] = None
+    honoraire_horaire: Optional[float] = None
+    estimation_heures: Optional[float] = None
     client_id: Optional[int] = None
 
 

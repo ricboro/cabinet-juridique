@@ -15,6 +15,14 @@ from app.utils import parse_date
 router = APIRouter()
 
 
+def _parse_float(value) -> float | None:
+    try:
+        v = float((value or "").strip().replace(",", "."))
+        return v if v >= 0 else None
+    except (ValueError, AttributeError):
+        return None
+
+
 def _parse_dossier_form(form) -> dict:
     return {
         "intitule": (form.get("intitule") or "").strip(),
@@ -22,6 +30,8 @@ def _parse_dossier_form(form) -> dict:
         "statut": (form.get("statut") or "en_cours").strip() or "en_cours",
         "date_ouverture": parse_date(form.get("date_ouverture", "")),
         "date_cloture": parse_date(form.get("date_cloture", "")),
+        "honoraire_horaire": _parse_float(form.get("honoraire_horaire")),
+        "estimation_heures": _parse_float(form.get("estimation_heures")),
         "client_id": int(form.get("client_id", 0)) if form.get("client_id") else None,
         "avocat_id": int(form.get("avocat_id", 0)) if form.get("avocat_id") else None,
     }

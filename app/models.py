@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Text, Date, DateTime, Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -33,6 +33,9 @@ class Client(Base):
     source_type = Column(String(50), nullable=True)
     source_detail = Column(String(50), nullable=True)
     source_client_id = Column(Integer, ForeignKey("clients.id"), nullable=True)
+    titre = Column(String(50), nullable=True)
+    profession = Column(String(100), nullable=True)
+    specialite = Column(String(100), nullable=True)
 
     dossiers = relationship("Dossier", back_populates="client")
     source_client = relationship("Client", foreign_keys=[source_client_id], remote_side="Client.id")
@@ -48,6 +51,8 @@ class Dossier(Base):
     statut = Column(Enum("en_cours", "cloture", "transfere", name="dossier_statut"), default="en_cours")
     date_ouverture = Column(Date, nullable=False)
     date_cloture = Column(Date, nullable=True)
+    honoraire_horaire = Column(Float, nullable=True)
+    estimation_heures = Column(Float, nullable=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
     avocat_id = Column(Integer, ForeignKey("avocats.id"), nullable=False)
 

@@ -48,7 +48,7 @@
               <td class="col-left">
                 <a href="{{ url_for('client_detail', id=client.id) }}" style="font-weight: 500; text-decoration: none;">
                   {% if client.type == 'personne' %}
-                    {{ client.prenom }} {{ client.nom }}
+                    {% if client.titre %}{{ client.titre }} {% endif %}{{ client.prenom }} {{ client.nom }}
                   {% else %}
                     {{ client.raison_sociale }}
                   {% endif %}

@@ -56,6 +56,9 @@ def _parse_client_form(form) -> dict:
         "source_type": source_type,
         "source_detail": source_detail,
         "source_client_id": source_client_id,
+        "titre": form.get("titre", "").strip() or None,
+        "profession": form.get("profession", "").strip() or None,
+        "specialite": form.get("specialite", "").strip() or None,
     }
 
 

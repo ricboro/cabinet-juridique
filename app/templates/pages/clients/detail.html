@@ -17,7 +17,7 @@
     <div>
       <h1 class="client-name">
         {% if client.type == 'personne' %}
-          {{ client.prenom }} {{ client.nom }}
+          {% if client.titre %}{{ client.titre }} {% endif %}{{ client.prenom }} {{ client.nom }}
         {% else %}
           {{ client.raison_sociale }}
         {% endif %}
@@ -73,6 +73,22 @@
         <div class="info-label">Adresse</div>
         <div class="info-value" style="white-space: pre-line;">{{ client.adresse or '—' }}</div>
       </div>
+      {% if client.type == 'personne' and (client.titre or client.profession or client.specialite) %}
+        <div class="info-item">
+          <div class="info-label">Titre</div>
+          <div class="info-value">{{ client.titre or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Profession</div>
+          <div class="info-value">{{ client.profession or '—' }}</div>
+        </div>
+        {% if client.specialite %}
+        <div class="info-item">
+          <div class="info-label">Spécialité</div>
+          <div class="info-value">{{ client.specialite }}</div>
+        </div>
+        {% endif %}
+      {% endif %}
       <div class="info-item">
         <div class="info-label">Client depuis</div>
         <div class="info-value">

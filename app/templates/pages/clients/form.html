@@ -171,6 +171,132 @@
         </div>
       </div>
 
+      {# ── Profil professionnel (personne physique uniquement) ── #}
+      <div class="form-section" id="fields-profession">
+        <div class="form-section-title">Profil professionnel</div>
+
+        {# datalist professions de santé #}
+        <datalist id="list-professions">
+          <option value="Médecin">
+          <option value="Chirurgien-dentiste">
+          <option value="Sage-femme">
+          <option value="Pharmacien">
+          <option value="Préparateur en pharmacie">
+          <option value="Infirmier">
+          <option value="Masseur-kinésithérapeute">
+          <option value="Pédicure-podologue">
+          <option value="Ergothérapeute">
+          <option value="Psychomotricien">
+          <option value="Orthophoniste">
+          <option value="Orthoptiste">
+          <option value="Manipulateur en électroradiologie médicale">
+          <option value="Technicien de laboratoire médical">
+          <option value="Audioprothésiste">
+          <option value="Opticien-lunetier">
+          <option value="Diététicien">
+          <option value="Aide-soignant">
+          <option value="Auxiliaire de puériculture">
+          <option value="Ambulancier">
+          <option value="Psychologue">
+          <option value="Ostéopathe">
+          <option value="Chiropracteur">
+          <option value="Psychothérapeute">
+        </datalist>
+
+        {# datalist spécialités médicales (44) #}
+        <datalist id="list-specialites">
+          <option value="Médecine générale">
+          <option value="Allergologie">
+          <option value="Anesthésie-réanimation">
+          <option value="Anatomie et cytologie pathologiques">
+          <option value="Biologie médicale">
+          <option value="Chirurgie générale">
+          <option value="Chirurgie maxillo-faciale">
+          <option value="Chirurgie orale">
+          <option value="Chirurgie orthopédique et traumatologique">
+          <option value="Chirurgie pédiatrique">
+          <option value="Chirurgie plastique">
+          <option value="Chirurgie thoracique et cardiovasculaire">
+          <option value="Chirurgie vasculaire">
+          <option value="Chirurgie viscérale et digestive">
+          <option value="Dermatologie et vénéréologie">
+          <option value="Endocrinologie-diabétologie-nutrition">
+          <option value="Génétique médicale">
+          <option value="Gériatrie">
+          <option value="Gynécologie médicale">
+          <option value="Gynécologie-obstétrique">
+          <option value="Hématologie">
+          <option value="Hémobiologie-transfusion">
+          <option value="Hépato-gastro-entérologie">
+          <option value="Maladies infectieuses et tropicales">
+          <option value="Médecine cardiovasculaire">
+          <option value="Médecine d'urgence">
+          <option value="Médecine et santé au travail">
+          <option value="Médecine intensive-réanimation">
+          <option value="Médecine interne et immunologie clinique">
+          <option value="Médecine légale et expertises médicales">
+          <option value="Médecine nucléaire">
+          <option value="Médecine physique et de réadaptation">
+          <option value="Médecine vasculaire">
+          <option value="Néphrologie">
+          <option value="Neurochirurgie">
+          <option value="Neurologie">
+          <option value="Oncologie médicale">
+          <option value="Oncologie radiothérapique">
+          <option value="Ophtalmologie">
+          <option value="Oto-rhino-laryngologie">
+          <option value="Pédiatrie">
+          <option value="Pharmacologie clinique et toxicologie">
+          <option value="Pneumologie">
+          <option value="Psychiatrie">
+          <option value="Radiologie et imagerie médicale">
+          <option value="Rhumatologie">
+          <option value="Santé publique">
+          <option value="Stomatologie">
+          <option value="Urologie">
+        </datalist>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="titre">Titre</label>
+            <input
+              type="text"
+              id="titre"
+              name="titre"
+              value="{{ client.titre if client else '' }}"
+              placeholder="Ex. : Docteur"
+              autocomplete="off"
+            >
+          </div>
+          <div class="form-group">
+            <label for="profession">Profession</label>
+            <input
+              type="text"
+              id="profession"
+              name="profession"
+              list="list-professions"
+              value="{{ client.profession if client else '' }}"
+              placeholder="Commencer à taper…"
+              autocomplete="off"
+              oninput="onProfessionChange(this.value)"
+            >
+          </div>
+        </div>
+
+        <div class="form-group" id="block-specialite" style="display: none;">
+          <label for="specialite">Spécialité médicale</label>
+          <input
+            type="text"
+            id="specialite"
+            name="specialite"
+            list="list-specialites"
+            value="{{ client.specialite if client else '' }}"
+            placeholder="Commencer à taper…"
+            autocomplete="off"
+          >
+        </div>
+      </div>
+
       {# ── Provenance ── #}
       <div class="form-section">
         <div class="form-section-title">Comment a-t-il connu le cabinet ?</div>
@@ -248,20 +374,44 @@
 
 {% block scripts %}
 <script>
+  // Titres auto-renseignés selon la profession (extensible)
+  var TITRES_AUTO = {
+    'Médecin': 'Docteur'
+  };
+
+  function onProfessionChange(value) {
+    // Afficher/masquer la spécialité
+    var blockSpec = document.getElementById('block-specialite');
+    if (value === 'Médecin') {
+      blockSpec.style.display = '';
+    } else {
+      blockSpec.style.display = 'none';
+      document.getElementById('specialite').value = '';
+    }
+    // Auto-renseigner le titre si vide
+    var titreInput = document.getElementById('titre');
+    var titre = TITRES_AUTO[value] || '';
+    if (titre && !titreInput.value.trim()) {
+      titreInput.value = titre;
+    }
+  }
+
   function toggleClientType(type) {
     var fieldsPersonne = document.getElementById('fields-personne');
     var fieldsSociete = document.getElementById('fields-societe');
+    var fieldsProfession = document.getElementById('fields-profession');
 
     if (type === 'personne') {
       fieldsPersonne.style.display = '';
       fieldsSociete.style.display = 'none';
-      // Rendre les champs personne requis
+      fieldsProfession.style.display = '';
       document.getElementById('prenom').required = true;
       document.getElementById('nom').required = true;
       document.getElementById('raison_sociale').required = false;
     } else {
       fieldsPersonne.style.display = 'none';
       fieldsSociete.style.display = '';
+      fieldsProfession.style.display = 'none';
       document.getElementById('prenom').required = false;
       document.getElementById('nom').required = false;
       document.getElementById('raison_sociale').required = true;
@@ -315,6 +465,11 @@
     var sourceType = document.getElementById('source_type').value;
     if (sourceType) {
       toggleSourceDetail(sourceType);
+    }
+    // Restaurer l'état spécialité au chargement
+    var professionVal = document.getElementById('profession').value;
+    if (professionVal === 'Médecin') {
+      document.getElementById('block-specialite').style.display = '';
     }
   });
 </script>
