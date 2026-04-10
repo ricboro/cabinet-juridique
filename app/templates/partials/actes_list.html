@@ -15,6 +15,11 @@
             <a href="{{ acte.lien_onedrive }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">
               Ouvrir OneDrive ↗
             </a>
+          {% elif acte.is_generated %}
+            <span class="badge" style="background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); font-size: 0.72rem;">⚠ Lien OneDrive manquant</span>
+            <a href="{{ url_for('acte_download', id=acte.id) }}" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">
+              Télécharger ↓
+            </a>
           {% endif %}
         </div>
         {% if acte.acte_tags %}

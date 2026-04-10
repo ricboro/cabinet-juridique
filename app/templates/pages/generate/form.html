@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Générer un document — {{ dossier.reference }} - Mon cabinet{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <div style="max-width: 600px; margin: 0 auto;">
+
+    <div class="status-bar">
+      <a href="{{ url_for('dossiers_list') }}">Dossiers</a>
+      <span class="sep">›</span>
+      <a href="{{ url_for('dossier_detail', id=dossier.id) }}">{{ dossier.reference }}</a>
+      <span class="sep">›</span>
+      <span class="current">Générer un document</span>
+    </div>
+
+    <h1 class="page-title">Générer un document</h1>
+
+    {# Avertissement si honoraires manquants #}
+    {% if errors.honoraire_horaire or errors.estimation_heures %}
+      <div class="card" style="margin-bottom: 20px; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--card-bg));">
+        <div style="font-weight: 600; margin-bottom: 8px;">Données manquantes sur le dossier</div>
+        {% if errors.honoraire_horaire %}
+          <p class="text-small" style="margin: 0 0 4px 0;">⚠ {{ errors.honoraire_horaire }}</p>
+        {% endif %}
+        {% if errors.estimation_heures %}
+          <p class="text-small" style="margin: 0;">⚠ {{ errors.estimation_heures }}</p>
+        {% endif %}
+        <div style="margin-top: 12px;">
+          <a href="{{ url_for('dossier_edit', id=dossier.id) }}" class="btn btn-primary btn-sm">
+            Compléter le dossier →
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card">
+      <div class="card-title">Informations</div>
+      <div class="info-grid" style="margin-bottom: 20px;">
+        <div class="info-item">
+          <div class="info-label">Dossier</div>
+          <div class="info-value" style="font-family: 'Playfair Display SC', serif;">{{ dossier.reference }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Client</div>
+          <div class="info-value">
+            {% if dossier.client %}
+              {% if dossier.client.type == 'personne' %}
+                {% if dossier.client.titre %}{{ dossier.client.titre }} {% endif %}{{ dossier.client.prenom }} {{ dossier.client.nom }}
+              {% else %}
+                {{ dossier.client.raison_sociale }}
+              {% endif %}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+        </div>
+        {% if dossier.honoraire_horaire is not none %}
+        <div class="info-item">
+          <div class="info-label">Taux horaire</div>
+          <div class="info-value">{{ "%.0f"|format(dossier.honoraire_horaire) }} €/h</div>
+        </div>
+        {% endif %}
+        {% if dossier.estimation_heures is not none %}
+        <div class="info-item">
+          <div class="info-label">Estimation</div>
+          <div class="info-value">{{ dossier.estimation_heures }} h</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <form
+        action="{{ url_for('generate_doc', id=dossier.id) }}"
+        method="post"
+        novalidate
+        {% if errors.honoraire_horaire or errors.estimation_heures %}style="opacity: 0.5; pointer-events: none;"{% endif %}
+      >
+        <div class="form-section">
+          <div class="form-group">
+            <label for="template_key">Type de document <span class="required">*</span></label>
+            <select id="template_key" name="template_key" required>
+              <option value="">-- Sélectionner --</option>
+              {% for key, meta in document_templates.items() %}
+                <option value="{{ key }}"
+                  {% if form_template_key == key %}selected{% endif %}>
+                  {{ meta.label }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if errors.template_key %}
+              <span class="error-msg">{{ errors.template_key }}</span>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="nom">Nom de l'acte <span class="required">*</span></label>
+            <input
+              type="text"
+              id="nom"
+              name="nom"
+              value="{{ form_nom or '' }}"
+              placeholder="Ex. : Convention d'honoraires — Jean Dupont"
+              autocomplete="off"
+              required
+            >
+            {% if errors.nom %}
+              <span class="error-msg">{{ errors.nom }}</span>
+            {% endif %}
+            <div class="text-muted text-small" style="margin-top: 4px;">
+              Ce nom apparaîtra dans la liste des actes du dossier.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Créer l'acte</button>
+          <a href="{{ url_for('dossier_detail', id=dossier.id) }}" class="btn">Annuler</a>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

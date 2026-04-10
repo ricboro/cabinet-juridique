@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Code applicatif
 COPY app/ ./app/
 
+# Templates de documents
+COPY Template/ ./Template/
+
 # Alembic (migrations)
 COPY alembic/ ./alembic/
 COPY alembic.ini .

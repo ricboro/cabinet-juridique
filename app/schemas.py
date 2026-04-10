@@ -205,7 +205,7 @@ class TagResponse(TagBase):
 class ActeBase(BaseModel):
     nom: str
     type_acte_id: int
-    lien_onedrive: str
+    lien_onedrive: Optional[str] = None
     date_production: datetime.date
 
 
@@ -213,6 +213,7 @@ class ActeCreate(ActeBase):
     dossier_id: Optional[int] = None
     tag_ids: list[int] = []
     tag_libelles: list[str] = []
+    is_generated: bool = False
 
 
 class ActeUpdate(BaseModel):

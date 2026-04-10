@@ -111,12 +111,14 @@ def make_context(request: Request, current_user, response: Response = None, **kw
 
 from app.routers import clients, dossiers, actes, type_actes
 from app.routers import search as search_router
+from app.routers import generate as generate_router
 
 app.include_router(clients.router)
 app.include_router(dossiers.router)
 app.include_router(actes.router)
 app.include_router(type_actes.router)
 app.include_router(search_router.router)
+app.include_router(generate_router.router)
 
 
 # ---------------------------------------------------------------------------

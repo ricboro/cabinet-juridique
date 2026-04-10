@@ -14,10 +14,14 @@ TYPES_ACTES_DEFAUT = [
 
 def seed_types_actes(db: Session) -> None:
     count = db.query(TypeActe).count()
-    if count > 0:
-        return
-    for libelle in TYPES_ACTES_DEFAUT:
-        crud.create_type_acte(db, libelle)
+    if count == 0:
+        for libelle in TYPES_ACTES_DEFAUT:
+            crud.create_type_acte(db, libelle)
+    # Ajout idempotent de types spéciaux (génération de documents)
+    for libelle in ["Convention d'honoraires"]:
+        exists = db.query(TypeActe).filter(TypeActe.libelle == libelle).first()
+        if not exists:
+            crud.create_type_acte(db, libelle)
 
 
 def seed_avocat_admin(db: Session) -> None:

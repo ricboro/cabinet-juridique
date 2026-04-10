@@ -298,9 +298,10 @@ def create_acte(db: Session, data: ActeCreate) -> Acte:
     acte = Acte(
         nom=data.nom,
         type_acte_id=data.type_acte_id,
-        lien_onedrive=data.lien_onedrive,
+        lien_onedrive=data.lien_onedrive or None,
         date_production=data.date_production,
         dossier_id=data.dossier_id,
+        is_generated=data.is_generated,
     )
     db.add(acte)
     db.flush()

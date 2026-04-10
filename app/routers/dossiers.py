@@ -45,6 +45,10 @@ def _validate_dossier_form(form_data: dict) -> dict:
         errors["date_ouverture"] = "La date d'ouverture est obligatoire"
     if not form_data.get("client_id"):
         errors["client_id"] = "Le client est obligatoire"
+    if form_data.get("honoraire_horaire") is None:
+        errors["honoraire_horaire"] = "Le taux horaire est obligatoire"
+    if form_data.get("estimation_heures") is None:
+        errors["estimation_heures"] = "L'estimation en heures est obligatoire"
     return errors
 
 

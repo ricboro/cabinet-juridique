@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, Date, DateTime, Enum, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Boolean, Text, Date, DateTime, Enum, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -79,8 +79,9 @@ class Acte(Base):
     id = Column(Integer, primary_key=True)
     nom = Column(String(300), nullable=False)
     type_acte_id = Column(Integer, ForeignKey("type_actes.id"), nullable=False)
-    lien_onedrive = Column(String(2000), nullable=False)
+    lien_onedrive = Column(String(2000), nullable=True)
     date_production = Column(Date, nullable=False)
+    is_generated = Column(Boolean, nullable=False, default=False)
     dossier_id = Column(Integer, ForeignKey("dossiers.id"), nullable=True)
 
     type_acte = relationship("TypeActe", back_populates="actes")
